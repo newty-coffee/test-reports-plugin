@@ -21,7 +21,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = "test-reports-plugin"
+rootProject.name = "test-reports"
 
 include("test-project")
 
