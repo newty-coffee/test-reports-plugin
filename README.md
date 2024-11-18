@@ -1,6 +1,231 @@
-# test-reports-plugin
+# test-reports-plugin for Gradle
 
-Adds JSON and Markdown reports to JUnit and Jacoco test tasks.
+A Gradle plugin to add JSON and Markdown reports to JaCoCo and JUnit test tasks.
+
+## Sample Reports
+
+### 1. Coverage: Summary Report
+> ![Summary Coverage Report](docs/sample-images/coverage-report-summary.png)  
+> \* <sub>green-red color scheme</sub>
+
+### 2. Coverage: Detailed Report
+> ![Detailed Coverage Report](docs/sample-images/coverage-report-detailed.png)  
+> \* <sub>monochrome color scheme</sub>
+
+### 3. Coverage: JSON report
+<details>
+
+##### Using simple counters:
+```json
+{
+    "report": {
+        "name": "test-project",
+        "counters": {
+            "instruction": 77.59,
+            "branch": 100.0,
+            "line": 70.83,
+            "complexity": 66.67,
+            "class": 75.0,
+            "method": 64.29
+        },
+        "packages": [
+            {
+                "name": "com.newtco.test.test",
+                "counters": {
+                    "instruction": 77.59,
+                    "branch": 100.0,
+                    "line": 70.83,
+                    "complexity": 66.67,
+                    "class": 75.0,
+                    "method": 64.29
+                },
+                "classes": [
+                    {
+                        "name": "Main.TestCallback",
+                        "sourceFile": "Main.java",
+                        "counters": {
+                            "instruction": 100.0,
+                            "branch": 0,
+                            "line": 100.0,
+                            "complexity": 100.0,
+                            "class": 100.0,
+                            "method": 100.0
+                        },
+                        "methods": [
+                            {
+                                "name": "<init>",
+                                "signature": "Main.TestCallback()",
+                                "line": {
+                                    "first": 62,
+                                    "last": 62
+                                },
+                                "counters": {
+                                    "instruction": 100.0,
+                                    "branch": 0,
+                                    "line": 100.0,
+                                    "complexity": 100.0,
+                                    "class": 0,
+                                    "method": 100.0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Main",
+                        "sourceFile": "Main.java",
+                        "counters": {
+                            "instruction": 93.75,
+                            "branch": 100.0,
+                            "line": 85.71,
+                            "complexity": 75.0,
+                            "class": 100.0,
+                            "method": 71.43
+                        },
+                        "methods": [
+                            {
+                                "name": "<init>",
+                                "signature": "Main()",
+                                "line": {
+                                    "first": 19,
+                                    "last": 19
+                                },
+                                "counters": {
+                                    "instruction": 100.0,
+                                    "branch": 0,
+                                    "line": 100.0,
+                                    "complexity": 100.0,
+                                    "class": 0,
+                                    "method": 100.0
+                                }
+                            },
+                            {
+                                "name": "test1",
+                                "signature": "test1()",
+                                "line": {
+                                    "first": 22,
+                                    "last": 23
+                                },
+                                "counters": {
+                                    "instruction": 100.0,
+                                    "branch": 0,
+                                    "line": 100.0,
+                                    "complexity": 100.0,
+                                    "class": 0,
+                                    "method": 100.0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Main.new Main.TestCallback() {...}",
+                        "sourceFile": "Main.java",
+                        "counters": {
+                            "instruction": 100.0,
+                            "branch": 0,
+                            "line": 100.0,
+                            "complexity": 100.0,
+                            "class": 100.0,
+                            "method": 100.0
+                        },
+                        "methods": [
+                            {
+                                "name": "call1",
+                                "signature": "call1()",
+                                "line": {
+                                    "first": 35,
+                                    "last": 36
+                                },
+                                "counters": {
+                                    "instruction": 100.0,
+                                    "branch": 0,
+                                    "line": 100.0,
+                                    "complexity": 100.0,
+                                    "class": 0,
+                                    "method": 100.0
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "sourceFiles": [
+                    {
+                        "name": "Main.java",
+                        "counters": {
+                            "instruction": 77.59,
+                            "branch": 100.0,
+                            "line": 70.83,
+                            "complexity": 66.67,
+                            "class": 75.0,
+                            "method": 64.29
+                        },
+                        "lines": [
+                            {
+                                "number": 19,
+                                "instructions": 100.0,
+                                "branches": 0
+                            },
+                            {
+                                "number": 22,
+                                "instructions": 100.0,
+                                "branches": 0
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+##### Using full counters:
+
+```json
+{
+    "report": {
+        "name": "test-project",
+        "counters": {
+            "instruction": {
+                "covered": 45,
+                "missed": 13
+            },
+            "branch": {
+                "covered": 2,
+                "missed": 0
+            },
+            "line": {
+                "covered": 17,
+                "missed": 7
+            },
+            "complexity": {
+                "covered": 10,
+                "missed": 5
+            },
+            "class": {
+                "covered": 3,
+                "missed": 1
+            },
+            "method": {
+                "covered": 9,
+                "missed": 5
+            }
+        }
+    }
+}
+```
+
+</details>
+
+---
+
+### 4. JUnit Summary Report:
+> ![Summary Test Report](docs/sample-images/test-report-summary.png)
+
+### 5. JUnit Detailed Report:
+> ![Detailed Test Report](docs/sample-images/test-report-detailed.png)
+
+### 6. JUnit JSON report
+
 
 ## Getting Started
 
@@ -35,8 +260,8 @@ JSON reports are generated by the plugin directly in code and do not support any
 properties documented below.
 
 Markdown reports are based on simple templates which compile to Java code. The plugin will create a new SourceSet named
-`test-reports`, and copy the default templates for both coverage and tests output to subdirectories of the SourceSet.
-You can modify these templates if required. The templates can be shared by multiple test tasks.
+`test-reports` and copy the default templates for both coverage and tests output to subdirectories of the SourceSet.
+You can modify these templates if required. The templates are shared by all test tasks.
 
 A single task for transpiling the templates to Java classes is created. This task allows you to change the package name
 of generated templates.
@@ -69,9 +294,8 @@ Both JSON and Markdown reports are configured as extensions of the existing `Tes
 
 ```groovy
 tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-
-    extensions.configure(com.newtco.test.reports.plugin.test.TestReportsExtension) {
+    
+    additionalReports {
         // Stack filters allow you to include/exclude certain classes from the stack traces
         // of test failure outputs in a report. This greatly reduces the size of stack traces
         // in report outputs.
@@ -82,8 +306,8 @@ tasks.withType(Test).configureEach {
             )
         }
 
-        // Three properties control how reports attempt to generate GitHub/GitLab permalinks to the failing line of a test
-        // case.
+        // Three properties control how reports attempt to generate GitHub/GitLab permalinks to the 
+        // failing line of a test case.
         //
         // Owner/repository associated with the report output.
         //
@@ -99,17 +323,17 @@ tasks.withType(Test).configureEach {
         // Supported template replacement parameters:
         //  repository - maps to gitLinkRepository property
         //  commit     - maps to gitLinkCommit property
-        //  path       - maps to source code file path relative to the git repo root
+        //  file       - maps to source code file path relative to the git repo root
         //
-        // Default value: https://github.com/{repository}/blob/{commit}/{path} or
-        //                https://gitlab.com/{repository}/blob/{commit}/{path} 
-        gitLinkUrlTemplate = "https://github.com/{repository}/blob/{commit}/{path}"
+        // Default value: https://github.com/{repository}/blob/{commit}/{file} or
+        //                https://gitlab.com/{repository}/blob/{commit}/{file} 
+        gitLinkUrlTemplate = "https://github.com/{repository}/blob/{commit}/{file}"
 
         // JSON configuration
         json {
             enabled = true
             // Merge all JSON reports into a single .json file
-            aggregateJsonReports = false
+            aggregateReports = false
             // Include the system err logs in the reports
             includeSystemErrLog = true
             // Include the system out logs in the reports
@@ -123,11 +347,17 @@ tasks.withType(Test).configureEach {
 
         // Summary markdown report configuration
         summaryMarkdown {
-            enabled = true
+            enabled = true    
+            // Merge all summary reports into a single .md file
+            aggregateReports = true
         }
 
+        // Detailed markdown report configuration
         detailedMarkdown {
             enabled = true
+            // Merge all detailed reports into a single .md file
+            aggregateReports = false
+             
             // Same as for JSON configuration
             includeSystemErrLog = true
             includeSystemOutLog = true
@@ -137,6 +367,12 @@ tasks.withType(Test).configureEach {
             testOutcomes("failure", "skipped")
         }
     }
+    
+    // Alternatively, configure the extension type
+    extensions.getByType(com.newtco.test.reports.plugin.test.TestReportsExtension).configure {
+        // Same as additionalReports above
+    }
+
 }
 ```
 
@@ -144,8 +380,11 @@ tasks.withType(Test).configureEach {
 
 ```kotlin
 tasks.withType<Test> {
-    useJUnitPlatform()
-
+    additionalReports {
+        // Same as Groovy DSL
+    }
+    
+    // Alternatively, configure the extension type (without the use of getByType())
     extensions.configure(com.newtco.test.reports.plugin.test.TestReportsExtension::class) {
         // Same as Groovy DSL
     }
@@ -158,26 +397,26 @@ tasks.withType<Test> {
 
 ```groovy
 tasks.withType(JacocoReport).configureEach {
-    extensions.configure(com.newtco.test.reports.plugin.coverage.CoverageReportExtension) {
-
-        // Sets the git ref name used to generate a list of files changes since. If the plugin is 
-        // able to generate a set of files which have changed, it will limit report output to only
-        // those files, or files of any test which are dependencies of the test. This allows capturing
-        // coverage changes when only tests are modified.
-        //
+    additionalReports {
+        // Sets the git ref name used as the base ref to generate a list of files changed. If
+        // the plugin is able to generate a list of files which have changed, it will limit 
+        // report output to only those files. The plugin will also detect the dependencies of
+        // any test and add those as well. This allows capturing coverage changes when only 
+        // tests are modified.
         // The plugin will run the following command to generate the list:
         // git --no-pager diff --name-only {gitBaseRef} HEAD -- {project.name}/**/*.java
         //
-        // Default value: GITHUB_BASE_REF or CI_MERGE_REQUEST_TARGET_BRANCH_NAME environment variable
+        // Default value: GITHUB_BASE_REF or CI_MERGE_REQUEST_TARGET_BRANCH_NAME environment
+        // variable
         gitBaseRef = "develop"
 
-        // List of Java source files to include or exclude in the coverage report. The plugin will automatically add
-        // files to this if it can detect delta changes via the gitBaseRef property.
+        // List of Java source files to include or exclude in the coverage report. The plugin
+        // will add files to this list if it can detect files changed via the gitBaseRef 
+        // property.
         changeSet {
             // Exclude Test files
             exclude "**/*Test.java"
         }
-
 
         // JSON configuration
         json {
@@ -190,7 +429,8 @@ tasks.withType(JacocoReport).configureEach {
             includeClasses = true
             // Whether to include source coverage information in the report
             includeSources = false
-            // Whether to simplify counters as a percentage or an object containing covered and missed properties
+            // Whether to simplify counters as a percentage or an object containing covered 
+            // and missed properties
             simplifiedCounters = true
         }
 
@@ -199,7 +439,8 @@ tasks.withType(JacocoReport).configureEach {
             enabled = true
             // The shields.io badge style for coverage amounts in the report
             badgeStyle = "flat-square"
-            // The color scheme used for coverage badges. 3 color schemes exist: green-red, monochrome, blue-red
+            // The color scheme used for coverage badges. 3 color schemes exist: 
+            //  - green-red, monochrome, blue-red
             colorScheme = "green-red"
             // Whether to abbreviate package names in the report
             abbreviatePackages = true
@@ -212,6 +453,12 @@ tasks.withType(JacocoReport).configureEach {
             abbreviatePackages = false
         }
     }
+
+    // Alternatively, configure the extension type
+    extensions.getByType(com.newtco.test.reports.plugin.coverage.CoverageReportsExtension)
+    .configure {
+        // Same as additionalReports above
+    }
 }
 ```
 
@@ -220,7 +467,12 @@ tasks.withType(JacocoReport).configureEach {
 ```kotlin
 
 tasks.withType<JacocoReport> {
-    extensions.configure(com.newtco.test.reports.plugin.coverage.CoverageReportExtension::class) {
+    additionalReports {
+        // Same as Groovy DSL
+    }
+
+    // Alternatively, configure the extension type (without the use of getByType())
+    extensions.configure(com.newtco.test.reports.plugin.coverage.CoverageReportsExtension::class) {
         // Same as Groovy DSL
     }
 }
