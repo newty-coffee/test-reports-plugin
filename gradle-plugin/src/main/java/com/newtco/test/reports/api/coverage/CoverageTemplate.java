@@ -16,11 +16,11 @@
 
 package com.newtco.test.reports.api.coverage;
 
-import java.io.Writer;
-
 import com.newtco.test.reports.api.MarkdownTemplate;
 import com.newtco.test.reports.api.coverage.model.Bundle;
 import com.newtco.test.reports.api.coverage.model.Coverage;
+
+import java.io.Writer;
 
 /**
  * Base class for coverage report templates, providing the core contextual properties/methods available to the render()

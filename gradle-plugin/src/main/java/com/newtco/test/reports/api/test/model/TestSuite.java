@@ -55,23 +55,22 @@ public class TestSuite extends Stats {
 
     @Override
     public String toString() {
-        return new StringBuilder("TestSuite{")
-            .append("total=").append(total)
-            .append(", passed=").append(passed)
-            .append(", skipped=").append(skipped)
-            .append(", failed=").append(failed)
-            .append(", startTime=").append(startTime)
-            .append(", endTime=").append(endTime)
-            .append(", duration=").append(duration)
-            .append(", id=").append(id)
-            .append(", status=").append(status)
-            .append(", name='").append(name).append('\'')
-            .append(", displayName='").append(displayName).append('\'')
-            .append(", className='").append(className).append('\'')
-            .append(", stdError='").append(stdErr).append('\'')
-            .append(", stdOutput='").append(stdOut).append('\'')
-            .append(", tests=").append(tests)
-            .append('}')
-            .toString();
+        return "TestSuite{" +
+                "total=" + total +
+                ", passed=" + passed +
+                ", skipped=" + skipped +
+                ", failed=" + failed +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", duration=" + duration +
+                ", id=" + id +
+                ", status=" + status +
+                ", name='" + name + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", className='" + className + '\'' +
+                ", stdError='" + stdErr + '\'' +
+                ", stdOutput='" + stdOut + '\'' +
+                ", tests=" + tests +
+                '}';
     }
 }

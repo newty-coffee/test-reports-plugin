@@ -1,13 +1,12 @@
 package com.newtco.test.templates;
 
+import com.google.common.truth.Truth;
+import com.newtco.test.reports.api.Template;
+import org.junit.jupiter.api.Test;
+
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
-import com.google.common.truth.Truth;
-import com.newtco.test.reports.api.Template;
 
 public class TemplateCodeGeneratorTest {
 
@@ -17,8 +16,8 @@ public class TemplateCodeGeneratorTest {
         String                packageName = "com.newtco.generated";
         String                className   = "GeneratedClass";
         Class<?>              parentClass = TestTemplate.class;
-        List<TemplateParser.TemplatePart> parts = Arrays.asList(
-            new TemplateParser.TemplatePart(TemplateParser.PartType.TEXT, "Hello, World!")
+        List<TemplateParser.TemplatePart> parts = List.of(
+                new TemplateParser.TemplatePart(TemplateParser.PartType.TEXT, "Hello, World!")
         );
         String result = generator.generateTemplateClass(packageName, className, parentClass, parts);
 
@@ -34,8 +33,8 @@ public class TemplateCodeGeneratorTest {
         String                packageName = "com.newtco.generated";
         String                className   = "GeneratedClass";
         Class<?>              parentClass = TestTemplate.class;
-        List<TemplateParser.TemplatePart> parts = Arrays.asList(
-            new TemplateParser.TemplatePart(TemplateParser.PartType.EXPRESSION, "2 + 2")
+        List<TemplateParser.TemplatePart> parts = List.of(
+                new TemplateParser.TemplatePart(TemplateParser.PartType.EXPRESSION, "2 + 2")
         );
         String result = generator.generateTemplateClass(packageName, className, parentClass, parts);
 
@@ -51,8 +50,8 @@ public class TemplateCodeGeneratorTest {
         String                packageName = "com.newtco.generated";
         String                className   = "GeneratedClass";
         Class<?>              parentClass = TestTemplate.class;
-        List<TemplateParser.TemplatePart> parts = Arrays.asList(
-            new TemplateParser.TemplatePart(TemplateParser.PartType.CODE, "int x = 10; out(x);")
+        List<TemplateParser.TemplatePart> parts = List.of(
+                new TemplateParser.TemplatePart(TemplateParser.PartType.CODE, "int x = 10; out(x);")
         );
         String result = generator.generateTemplateClass(packageName, className, parentClass, parts);
 
@@ -70,10 +69,10 @@ public class TemplateCodeGeneratorTest {
         String                className   = "GeneratedClass";
         Class<?>              parentClass = TestTemplate.class;
         List<TemplateParser.TemplatePart> parts = Arrays.asList(
-            new TemplateParser.TemplatePart(TemplateParser.PartType.TEXT, "Hello, "),
-            new TemplateParser.TemplatePart(TemplateParser.PartType.EXPRESSION, "name"),
-            new TemplateParser.TemplatePart(TemplateParser.PartType.CODE,
-                "if (name == null) { name = \"World\"; } out(name);")
+                new TemplateParser.TemplatePart(TemplateParser.PartType.TEXT, "Hello, "),
+                new TemplateParser.TemplatePart(TemplateParser.PartType.EXPRESSION, "name"),
+                new TemplateParser.TemplatePart(TemplateParser.PartType.CODE,
+                        "if (name == null) { name = \"World\"; } out(name);")
         );
         String result = generator.generateTemplateClass(packageName, className, parentClass, parts);
 
@@ -84,7 +83,6 @@ public class TemplateCodeGeneratorTest {
         Truth.assertThat(result).contains("out(name);");
         Truth.assertThat(result).contains("if (name == null) { name = \"World\"; } out(name);");
     }
-
 
 
     // Mock Template class to be used in tests

@@ -1,8 +1,7 @@
 package com.newtco.test.util;
 
-import org.junit.jupiter.api.Test;
-
 import com.newtco.testlib.gradle.MockProject;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -51,9 +50,7 @@ class GradleTest {
         String result = Gradle.findProperty(project, propertyName);
         assertEquals(propertyValue, result);
     }
-    
-    
-    
+
 
     // Test to verify findProperty when property is neither in project nor in environment
     @Test
@@ -67,12 +64,12 @@ class GradleTest {
     // Test to verify the property search order: Project > System > Gradle > Environment
     @Test
     void testFindPropertySearchOrder() {
-        var    project       = MockProject.create();
-        String propertyName  = "testProperty";
-        String projectValue  = "projectValue";
-        String systemValue   = "systemValue";
-        String gradleValue   = "gradleValue";
-        String envValue      = "envValue";
+        var    project      = MockProject.create();
+        String propertyName = "testProperty";
+        String projectValue = "projectValue";
+        String systemValue  = "systemValue";
+        String gradleValue  = "gradleValue";
+        String envValue     = "envValue";
 
         project.setProperty(propertyName, projectValue);
         project.getProviders().setSystemPropertyForTest(propertyName, systemValue);

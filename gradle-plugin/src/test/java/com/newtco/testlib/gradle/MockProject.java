@@ -1,20 +1,19 @@
 package com.newtco.testlib.gradle;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
+import groovy.lang.MissingPropertyException;
 import org.gradle.api.Project;
 import org.mockito.Mockito;
 
-import groovy.lang.MissingPropertyException;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public abstract class MockProject implements Project {
+    private final Map<String, Object> properties;
     private       Object              group;
     private       Object              version;
     private       MockProviderFactory providers;
-    private final Map<String, Object> properties;
 
     MockProject() {
         this.properties = new LinkedHashMap<>();

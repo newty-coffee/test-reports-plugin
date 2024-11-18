@@ -16,30 +16,22 @@
 
 package com.newtco.test.util;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import com.newtco.test.util.SourceSetCollectors.SourceFileFilter;
+import com.newtco.test.util.SourceSetCollectors.SourceFileTreeFilter;
+import com.newtco.testlib.gradle.MockSourceSet;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.tasks.SourceSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.newtco.test.util.SourceSetCollectors.SourceFileFilter;
-import com.newtco.test.util.SourceSetCollectors.SourceFileTreeFilter;
-import com.newtco.testlib.gradle.MockSourceSet;
+import java.io.File;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * A class for testing various functionalities related to source sets and file collections, primarily those defined in
@@ -53,16 +45,16 @@ public class SourceSetCollectorsTest {
     @BeforeAll
     public static void setup() {
         standardSourceSets = List.of(
-            createSourceSet("main",
-                getStdMainJavaFiles(true),
-                getStdMainResourceFiles(true),
-                getStdMainClassFiles(true),
-                getStdMainResourceOutputs(true)),
-            createSourceSet("test",
-                getStdTestJavaFiles(true),
-                getStdTestResourceFiles(true),
-                getStdTestClassFiles(true),
-                getStdTestResourceOutputs(true))
+                createSourceSet("main",
+                        getStdMainJavaFiles(true),
+                        getStdMainResourceFiles(true),
+                        getStdMainClassFiles(true),
+                        getStdMainResourceOutputs(true)),
+                createSourceSet("test",
+                        getStdTestJavaFiles(true),
+                        getStdTestResourceFiles(true),
+                        getStdTestClassFiles(true),
+                        getStdTestResourceOutputs(true))
         );
     }
 
@@ -71,87 +63,87 @@ public class SourceSetCollectorsTest {
 
         // Java sources (6 files)
         return Set.of(
-            prefix + "a/A1.java",
-            prefix + "a/A2.java",
-            prefix + "a/b/B1.java",
-            prefix + "a/b/B2.java",
-            prefix + "a/b/c/C1.java",
-            prefix + "a/b/c/C2.java");
+                prefix + "a/A1.java",
+                prefix + "a/A2.java",
+                prefix + "a/b/B1.java",
+                prefix + "a/b/B2.java",
+                prefix + "a/b/c/C1.java",
+                prefix + "a/b/c/C2.java");
     }
 
     private static Set<String> getStdMainClassFiles(boolean relative) {
         var prefix = relative ? "" : "/home/proj/build/classes/java/main/";
 
         return Set.of(
-            prefix + "a/A1.class",
-            prefix + "a/A2.class",
-            prefix + "a/A2$Inner1.class",
-            prefix + "a/b/B1.class",
-            prefix + "a/b/B2.class",
-            prefix + "a/b/B2$Inner1.class",
-            prefix + "a/b/B2$Inner1$Inner2.class",
-            prefix + "a/b/c/C1.class",
-            prefix + "a/b/c/C2$Inner1.class",
-            prefix + "a/b/c/C2$Inner1$Inner2.class");
+                prefix + "a/A1.class",
+                prefix + "a/A2.class",
+                prefix + "a/A2$Inner1.class",
+                prefix + "a/b/B1.class",
+                prefix + "a/b/B2.class",
+                prefix + "a/b/B2$Inner1.class",
+                prefix + "a/b/B2$Inner1$Inner2.class",
+                prefix + "a/b/c/C1.class",
+                prefix + "a/b/c/C2$Inner1.class",
+                prefix + "a/b/c/C2$Inner1$Inner2.class");
     }
 
     private static Set<String> getStdMainResourceFiles(boolean relative) {
         var prefix = relative ? "" : "/home/proj/src/main/resources/";
 
         return Set.of(
-            prefix + "some random file.txt",
-            prefix + "a/A1.properties",
-            prefix + "a/b/B1.properties");
+                prefix + "some random file.txt",
+                prefix + "a/A1.properties",
+                prefix + "a/b/B1.properties");
     }
 
     private static Set<String> getStdMainResourceOutputs(boolean relative) {
         var prefix = relative ? "" : "/home/proj/build/resources/main/";
 
         return Set.of(
-            prefix + "some random file.txt",
-            prefix + "a/A1.properties",
-            prefix + "a/b/B1.properties");
+                prefix + "some random file.txt",
+                prefix + "a/A1.properties",
+                prefix + "a/b/B1.properties");
     }
 
     private static Set<String> getStdTestJavaFiles(boolean relative) {
         var prefix = relative ? "" : "/home/proj/src/test/java/";
 
         return Set.of(
-            prefix + "a/A2Test.java",
-            prefix + "a/b/B1Test.java",
-            prefix + "a/b/c/C1Test.java");
+                prefix + "a/A2Test.java",
+                prefix + "a/b/B1Test.java",
+                prefix + "a/b/c/C1Test.java");
     }
 
     private static Set<String> getStdTestClassFiles(boolean relative) {
         var prefix = relative ? "" : "/home/proj/build/classes/java/test/";
         return Set.of(
-            prefix + "a/A2Test.class",
-            prefix + "a/b/B1Test.class",
-            prefix + "a/b/c/C1Test.class",
-            prefix + "a/b/c/C1Test$Inner.class");
+                prefix + "a/A2Test.class",
+                prefix + "a/b/B1Test.class",
+                prefix + "a/b/c/C1Test.class",
+                prefix + "a/b/c/C1Test$Inner.class");
     }
 
     private static Set<String> getStdTestResourceFiles(boolean relative) {
         var prefix = relative ? "" : "/home/proj/src/test/resources/";
         return Set.of(
-            prefix + "some random file.txt",
-            prefix + "a/b/B1Test.txt.properties");
+                prefix + "some random file.txt",
+                prefix + "a/b/B1Test.txt.properties");
     }
 
     private static Set<String> getStdTestResourceOutputs(boolean relative) {
         var prefix = relative ? "" : "/home/proj/build/resources/test/";
         return Set.of(
-            prefix + "some random file.txt",
-            prefix + "a/b/B1Test.txt.properties");
+                prefix + "some random file.txt",
+                prefix + "a/b/B1Test.txt.properties");
     }
 
     @SafeVarargs
     private static SourceSet createSourceSet(String name, Collection<String>... fileSets) {
         return MockSourceSet.create(
-            name,
-            "/home/proj",
-            // Source & classes
-            combineFileSets(fileSets).toArray()
+                name,
+                "/home/proj",
+                // Source & classes
+                combineFileSets(fileSets).toArray()
         );
     }
 
@@ -170,9 +162,9 @@ public class SourceSetCollectorsTest {
 
     private String pathToClassName(String file) {
         return file.replace('/', '.')
-            .replace('$', '.')
-            .replace(".java", "")
-            .replace(".class", "");
+                .replace('$', '.')
+                .replace(".java", "")
+                .replace(".class", "");
     }
 
     private <K, V> Set<V> valueSets(Map<K, Set<V>> map) {
@@ -188,13 +180,13 @@ public class SourceSetCollectorsTest {
      */
     private <A, B> void assertEqualFileSet(Set<A> expected, Set<B> actual) {
         var normalizedExpected = expected.stream()
-            .map(SourceSetCollectorsTest::normalizePath)
-            .sorted()
-            .collect(Collectors.joining("\n"));
+                .map(SourceSetCollectorsTest::normalizePath)
+                .sorted()
+                .collect(Collectors.joining("\n"));
         var normalizedActual = actual.stream()
-            .map(SourceSetCollectorsTest::normalizePath)
-            .sorted()
-            .collect(Collectors.joining("\n"));
+                .map(SourceSetCollectorsTest::normalizePath)
+                .sorted()
+                .collect(Collectors.joining("\n"));
         assertEquals(normalizedExpected, normalizedActual, "Expected and actual file sets do not match.");
     }
 
@@ -222,8 +214,8 @@ public class SourceSetCollectorsTest {
 
         // Define the expected set of .java file paths
         var expected = combineFileSets(
-            getStdMainJavaFiles(false),
-            getStdTestJavaFiles(false)
+                getStdMainJavaFiles(false),
+                getStdTestJavaFiles(false)
         );
 
         // Assert
@@ -283,10 +275,10 @@ public class SourceSetCollectorsTest {
 
         // Define the expected set of all class names in uppercase
         var expected = combineFileSets(getStdMainJavaFiles(true), getStdTestJavaFiles(true))
-            .stream()
-            .map(this::pathToClassName)
-            .map(String::toUpperCase)
-            .collect(Collectors.toSet());
+                .stream()
+                .map(this::pathToClassName)
+                .map(String::toUpperCase)
+                .collect(Collectors.toSet());
 
         // Assert
         assertEqualFileSet(expected, result);
@@ -310,8 +302,8 @@ public class SourceSetCollectorsTest {
 
         // Act
         var result = stdSourceSets.stream()
-            .parallel()
-            .collect(SourceSetCollectors.sourcesMatching(filter, mapper));
+                .parallel()
+                .collect(SourceSetCollectors.sourcesMatching(filter, mapper));
 
         // Define the expected empty set
         var expected = Map.<String, String>of();
@@ -330,12 +322,12 @@ public class SourceSetCollectorsTest {
         // Arrange
         // Create two SourceSets with overlapping class names
         var mainSourceSet = createSourceSet("main",
-            getStdMainJavaFiles(true),
-            getStdMainClassFiles(true));
+                getStdMainJavaFiles(true),
+                getStdMainClassFiles(true));
 
         var testSourceSet = createSourceSet("test",
-            getStdTestJavaFiles(true),
-            getStdTestClassFiles(true));
+                getStdTestJavaFiles(true),
+                getStdTestClassFiles(true));
 
         var sourceSets = List.of(mainSourceSet, testSourceSet);
 
@@ -347,9 +339,9 @@ public class SourceSetCollectorsTest {
 
         // Define the expected set of class file names
         var expected = combineFileSets(getStdMainJavaFiles(false), getStdTestJavaFiles(false))
-            .stream()
-            .map(SourceSetCollectorsTest::normalizePath)
-            .collect(Collectors.toSet());
+                .stream()
+                .map(SourceSetCollectorsTest::normalizePath)
+                .collect(Collectors.toSet());
 
         // Assert
         assertEqualFileSet(expected, result);
@@ -378,9 +370,9 @@ public class SourceSetCollectorsTest {
 
         // Define the expected set of class file names
         var expected = combineFileSets(getStdMainJavaFiles(false), getStdTestJavaFiles(false))
-            .stream()
-            .map(file -> new File(file).getName())
-            .collect(Collectors.toSet());
+                .stream()
+                .map(file -> new File(file).getName())
+                .collect(Collectors.toSet());
 
         // Assert
         assertEqualFileSet(expected, result);
@@ -404,11 +396,11 @@ public class SourceSetCollectorsTest {
 
         // Define the expected set of B-related .class files
         var expected = combineFileSets(
-            getStdMainClassFiles(false),
-            getStdTestClassFiles(false)
+                getStdMainClassFiles(false),
+                getStdTestClassFiles(false)
         ).stream()
-            .filter(file -> file.contains("/B"))
-            .collect(Collectors.toSet());
+                .filter(file -> file.contains("/B"))
+                .collect(Collectors.toSet());
 
         // Assert
         assertEqualFileSet(expected, result);
@@ -439,13 +431,13 @@ public class SourceSetCollectorsTest {
 
         // Act
         var result = stdSourceSets.stream()
-            .parallel()
-            .collect(SourceSetCollectors.classesMatching(filter, mapper, finisher));
+                .parallel()
+                .collect(SourceSetCollectors.classesMatching(filter, mapper, finisher));
 
         // Define the expected set of .class file paths
         var expected = combineFileSets(
-            getStdMainClassFiles(false),
-            getStdTestClassFiles(false)
+                getStdMainClassFiles(false),
+                getStdTestClassFiles(false)
         );
 
         // Assert
@@ -553,12 +545,12 @@ public class SourceSetCollectorsTest {
         // Arrange
         // Create two SourceSets with overlapping class names
         var mainSourceSet = createSourceSet("main",
-            getStdMainJavaFiles(true),
-            getStdMainClassFiles(true));
+                getStdMainJavaFiles(true),
+                getStdMainClassFiles(true));
 
         var testSourceSet = createSourceSet("test",
-            getStdTestJavaFiles(true),
-            getStdTestClassFiles(true));
+                getStdTestJavaFiles(true),
+                getStdTestClassFiles(true));
 
         var sourceSets = List.of(mainSourceSet, testSourceSet);
 
@@ -576,10 +568,10 @@ public class SourceSetCollectorsTest {
 
         // Define the expected set of class file names containing ".A" or ".B"
         var expected = combineFileSets(getStdMainClassFiles(false), getStdTestClassFiles(false))
-            .stream()
-            .filter(file -> file.contains("/A") || file.contains("/B"))
-            .map(File::new)
-            .collect(Collectors.toSet());
+                .stream()
+                .filter(file -> file.contains("/A") || file.contains("/B"))
+                .map(File::new)
+                .collect(Collectors.toSet());
 
         // Assert
         assertEqualFileSet(expected, result);
@@ -596,7 +588,7 @@ public class SourceSetCollectorsTest {
 
         // Define a filter that accepts all .class files starting with "B" or "C"
         var filter = (SourceFileFilter) (className, file) -> file.getName().startsWith("B") || file.getName()
-            .startsWith("C");
+                .startsWith("C");
 
         // Define a custom mapper that extracts only the class file name
         var mapper = (BiFunction<String, FileTreeElement, String>) (className, element) -> element.getName();
@@ -609,10 +601,10 @@ public class SourceSetCollectorsTest {
 
         // Define the expected set of class file names starting with "B" or "C"
         var expected = combineFileSets(getStdMainClassFiles(false), getStdTestClassFiles(false))
-            .stream()
-            .map(file -> new File(file).getName())
-            .filter(file -> file.startsWith("B") || file.startsWith("C"))
-            .collect(Collectors.toSet());
+                .stream()
+                .map(file -> new File(file).getName())
+                .filter(file -> file.startsWith("B") || file.startsWith("C"))
+                .collect(Collectors.toSet());
 
         // Assert
         assertEqualFileSet(expected, result);
@@ -629,14 +621,14 @@ public class SourceSetCollectorsTest {
         SourceFileFilter never  = (className, file) -> false;
 
         assertFalse(always.and(never).test("a.B", new File("B")),
-            "Should always return false");
+                "Should always return false");
         assertFalse(never.and(always).test("a.B", new File("B")),
-            "Should always return false");
+                "Should always return false");
 
         assertTrue(always.or(never).test("a.B", new File("B")),
-            "Should always return true");
+                "Should always return true");
         assertTrue(never.or(always).test("a.B", new File("B")),
-            "Should always return true");
+                "Should always return true");
     }
 
     /**
@@ -650,13 +642,13 @@ public class SourceSetCollectorsTest {
         SourceFileTreeFilter never  = (className, element) -> false;
 
         assertFalse(always.and(never).test("a.B", null),
-            "Should always return false");
+                "Should always return false");
         assertFalse(never.and(always).test("a.B", null),
-            "Should always return false");
+                "Should always return false");
 
         assertTrue(always.or(never).test("a.B", null),
-            "Should always return true");
+                "Should always return true");
         assertTrue(never.or(always).test("a.B", null),
-            "Should always return true");
+                "Should always return true");
     }
 }

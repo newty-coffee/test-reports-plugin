@@ -18,7 +18,10 @@ package com.newtco.test.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class CodeGen {
 
@@ -38,23 +41,10 @@ public class CodeGen {
             this.signature      = signature;
         }
 
-        public String getSignature() {
-            return signature;
-        }
-
-        public List<String> getImports() {
-            return imports;
-        }
-
-        public List<String> getParameterNames() {
-            return parameterNames;
-        }
-
         /**
          * Creates a Signature object from the provided Executable instance.
          *
          * @param executable the Executable (either a Method or Constructor) for which the signature is to be created
-         *
          * @return a Signature object representing the signature of the provided Executable
          */
         public static Signature of(Executable executable) {
@@ -66,11 +56,22 @@ public class CodeGen {
          *
          * @param executable the Executable (either a Method or Constructor) for which the signature is to be created
          * @param newName    the new constructor or method name for the signature
-         *
          * @return a Signature object representing the signature of the provided Executable
          */
         public static Signature of(Executable executable, String newName) {
             return new Builder().build(executable, newName);
+        }
+
+        public String getSignature() {
+            return signature;
+        }
+
+        public List<String> getImports() {
+            return imports;
+        }
+
+        public List<String> getParameterNames() {
+            return parameterNames;
         }
 
         private static class Builder {

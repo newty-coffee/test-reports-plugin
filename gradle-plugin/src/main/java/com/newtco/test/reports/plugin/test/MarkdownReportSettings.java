@@ -16,11 +16,10 @@
 
 package com.newtco.test.reports.plugin.test;
 
-import javax.inject.Inject;
-
 import org.gradle.api.Project;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
+
+import javax.inject.Inject;
 
 /**
  * Abstract class for configuring settings related to Markdown reports for testing results. It extends

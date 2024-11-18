@@ -16,10 +16,10 @@
 
 package com.newtco.test.reports.api.coverage;
 
+import com.newtco.test.reports.api.coverage.model.Coverage;
+
 import java.util.Comparator;
 import java.util.stream.Stream;
-
-import com.newtco.test.reports.api.coverage.model.Coverage;
 
 /**
  * Represents a badge with a style and color scheme, used to display coverage percentages. Badges are generated via
@@ -39,15 +39,14 @@ public class Badge {
     public Badge(String style, ColorScheme.Color[] colors) {
         this.style  = style;
         this.colors = Stream.of(colors)
-            .sorted(Comparator.comparingDouble(ColorScheme.Color::getThreshold).reversed())
-            .toArray(ColorScheme.Color[]::new);
+                .sorted(Comparator.comparingDouble(ColorScheme.Color::getThreshold).reversed())
+                .toArray(ColorScheme.Color[]::new);
     }
 
     /**
      * Generates a coverage badge from the given coverage counter.
      *
      * @param counter the counter containing the coverage statistics
-     *
      * @return a string representing the generated badge with a style and color or just the percentage if the style is
      * "none"
      */
@@ -59,7 +58,6 @@ public class Badge {
      * Creates a formatted percentage string and, depending on the style, may generate a badge URL.
      *
      * @param percentage the percentage to be formatted
-     *
      * @return a string representing the formatted percentage. If the style is not "none", a badge URL string is
      * returned.
      */
@@ -115,6 +113,17 @@ public class Badge {
         }
 
         /**
+         * Creates a new ColorScheme instance with the given name and array of colors.
+         *
+         * @param name   the name of the color scheme
+         * @param colors an array of Color objects associated with the scheme
+         * @return a new ColorScheme instance
+         */
+        public static ColorScheme of(String name, Color... colors) {
+            return new ColorScheme(name, colors);
+        }
+
+        /**
          * Retrieves the name of the ColorScheme.
          *
          * @return the name of the color scheme
@@ -153,6 +162,17 @@ public class Badge {
             }
 
             /**
+             * Creates a new Color instance with the specified threshold and color.
+             *
+             * @param threshold the threshold value associated with the color
+             * @param color     the color code as a string
+             * @return a new Color instance
+             */
+            public static Color of(double threshold, String color) {
+                return new Color(threshold, color);
+            }
+
+            /**
              * Retrieves the threshold value associated with the color.
              *
              * @return the threshold value
@@ -169,30 +189,6 @@ public class Badge {
             public String getColor() {
                 return color;
             }
-
-            /**
-             * Creates a new Color instance with the specified threshold and color.
-             *
-             * @param threshold the threshold value associated with the color
-             * @param color     the color code as a string
-             *
-             * @return a new Color instance
-             */
-            public static Color of(double threshold, String color) {
-                return new Color(threshold, color);
-            }
-        }
-
-        /**
-         * Creates a new ColorScheme instance with the given name and array of colors.
-         *
-         * @param name   the name of the color scheme
-         * @param colors an array of Color objects associated with the scheme
-         *
-         * @return a new ColorScheme instance
-         */
-        public static ColorScheme of(String name, Color... colors) {
-            return new ColorScheme(name, colors);
         }
     }
 }

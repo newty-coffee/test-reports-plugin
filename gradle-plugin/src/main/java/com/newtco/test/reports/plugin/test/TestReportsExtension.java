@@ -16,51 +16,62 @@
 
 package com.newtco.test.reports.plugin.test;
 
-import java.util.Objects;
-import javax.inject.Inject;
-
+import com.newtco.test.util.FilterSet;
+import com.newtco.test.util.Gradle;
+import groovy.lang.Closure;
+import org.codehaus.groovy.ast.tools.ClosureUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.util.Configurable;
+import org.gradle.util.ConfigureUtil;
 
-import com.newtco.test.util.FilterSet;
-import com.newtco.test.util.Gradle;
+import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-@SuppressWarnings("UnstableApiUsage")
-public abstract class TestReportsExtension {
+public class TestReportsExtension implements Configurable<TestReportsExtension> {
 
     private final FilterSet              stackFilters;
     private final JsonReportSettings     json;
     private final MarkdownReportSettings summaryMarkdown;
     private final MarkdownReportSettings detailedMarkdown;
     private final DirectoryProperty      outputLocation;
+    private final Property<String>       gitLinkRepository;
+    private final Property<String>       gitLinkCommit;
+    private final Property<String>       gitLinkUrlTemplate;
+    private final Project                project;
 
     @Inject
-    @SuppressWarnings("squid:S5993") // Gradle requires public here
     public TestReportsExtension(Project project, Test test) {
         var objects = project.getObjects();
 
-        getGitLinkRepository().convention(Gradle.findProperty(project, "GITHUB_REPOSITORY", "CI_PROJECT_PATH_SLUG"));
-        getGitLinkCommit().convention(Gradle.findProperty(project, "GITHUB_SHA", "CI_COMMIT_SHA"));
+        this.gitLinkRepository = objects.property(String.class)
+                .convention(Gradle.findProperty(project, "GITHUB_REPOSITORY", "CI_PROJECT_PATH_SLUG"));
 
-        if ("true".equals(Gradle.findProperty(project, "GITLAB_CI"))) {
-            getGitLinkUrlTemplate().convention("https://gitlab.com/{repository}/blob/{commit}/{path}");
-        } else {
-            getGitLinkUrlTemplate().convention("https://github.com/{repository}/blob/{commit}/{path}");
+        this.gitLinkCommit = objects.property(String.class)
+                .convention(Gradle.findProperty(project, "GITHUB_SHA", "CI_COMMIT_SHA"));
 
-        }
+        this.gitLinkUrlTemplate = objects.property(String.class)
+                .convention("https://%s/{repository}/blob/{commit}/{file}".formatted(
+                        "true".equals(Gradle.findProperty(project, "GITLAB_CI"))
+                                ? "gitlab.com"
+                                : "github.com"));
 
         this.stackFilters = objects.newInstance(FilterSet.class);
         // By default, include the project group, if set
         var group = Objects.toString(project.getGroup(), null);
         if (group != null) {
             group += group.endsWith(".")
-                     ? "**"
-                     : ".**";
+                    ? "**"
+                    : ".**";
             stackFilters.include(group);
         }
 
@@ -68,12 +79,13 @@ public abstract class TestReportsExtension {
         json = objects.newInstance(JsonReportSettings.class, project, junitXml);
 
         summaryMarkdown = objects.newInstance(MarkdownReportSettings.class, "Summary",
-            project, junitXml);
+                project, junitXml);
 
         detailedMarkdown = objects.newInstance(MarkdownReportSettings.class, "Detailed",
-            project, junitXml);
+                project, junitXml);
 
         outputLocation = objects.directoryProperty().convention(junitXml.getOutputLocation());
+        this.project = project;
     }
 
     /**
@@ -84,7 +96,19 @@ public abstract class TestReportsExtension {
      * @return a property representing the GitHub repository.
      */
     @Input
-    public abstract Property<String> getGitLinkRepository();
+    public Property<String> getGitLinkRepository() {
+        return gitLinkRepository;
+    }
+
+    // For Groovy/Kotlin DSL
+    public void setGitLinkRepository(String value) {
+        gitLinkRepository.set(value);
+    }
+
+    public void setGitLinkRepository(Property<String> value) {
+        gitLinkRepository.set(value);
+    }
+
 
     /**
      * Retrieves the GitHub SHA associated with the report.
@@ -94,8 +118,18 @@ public abstract class TestReportsExtension {
      * @return a property representing the GitHub SHA.
      */
     @Input
-    public abstract Property<String> getGitLinkCommit();
+    public Property<String> getGitLinkCommit() {
+        return gitLinkCommit;
+    }
 
+    // For Groovy/Kotlin DSL
+    public void setGitLinkCommit(String value) {
+        gitLinkCommit.set(value);
+    }
+
+    public void setGitLinkCommit(Property<String> value) {
+        gitLinkCommit.set(value);
+    }
 
     /**
      * Retrieves the URL template used for generating links to the source code files in the report.
@@ -104,16 +138,27 @@ public abstract class TestReportsExtension {
      * <ul>
      *     <li>repository</li>
      *     <li>commit</li>
-     *     <li>path</li>
+     *     <li>file</li>
      * </ul>
      * <p>
-     * Default value: {@literal https://github.com/{repository}/blob/{commit}/{path}} or
-     * {@literal https://gitlab.com/{repository}/blob/{commit}/{path}}
+     * Default value: {@literal https://github.com/{repository}/blob/{commit}/{file}} or
+     * {@literal https://gitlab.com/{repository}/blob/{commit}/{file}}
      *
      * @return a property representing the URL template.
      */
     @Input
-    public abstract Property<String> getGitLinkUrlTemplate();
+    public Property<String> getGitLinkUrlTemplate() {
+        return gitLinkUrlTemplate;
+    }
+
+    // For Groovy/Kotlin DSL
+    public void setGitLinkUrlTemplate(String value) {
+        gitLinkUrlTemplate.set(value);
+    }
+
+    public void setGitLinkUrlTemplate(Property<String> value) {
+        gitLinkUrlTemplate.set(value);
+    }
 
     /**
      * Retrieves the filter set used to include or exclude specific stack elements.
@@ -188,7 +233,23 @@ public abstract class TestReportsExtension {
     public DirectoryProperty getOutputLocation() {
         return outputLocation;
     }
+
+    /**
+     * To work around extensions.configure not using the extension as the delegate
+     */
+    public TestReportsExtension configure(Action<? super TestReportsExtension> action) {
+        action.execute(this);
+        return this;
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public TestReportsExtension configure(Closure closure) {
+       return configure(
+         extension -> {
+            closure.setDelegate(extension);
+            closure.call(extension);
+         }
+       );
+    }
 }
-
-
-

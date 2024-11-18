@@ -16,19 +16,17 @@
 
 package com.newtco.testlib.gradle;
 
-import java.io.File;
-import java.util.ArrayList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.mockito.Mockito;
 
-import static com.newtco.testlib.gradle.MockUtil.asPath;
-import static com.newtco.testlib.gradle.MockUtil.classFiles;
-import static com.newtco.testlib.gradle.MockUtil.resourceFiles;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.util.ArrayList;
+
+import static com.newtco.testlib.gradle.MockUtil.*;
 
 /**
  * An abstract class representing the output of a source set in a mock testing environment. This class extends
@@ -43,11 +41,11 @@ public abstract class MockSourceSetOutput extends MockFileTree implements Source
         mock.dir = asPath(dir);
         // Setup classes & resources first
         mock.classes   = MockFileTree.create(
-            asPath(dir, "classes", "java", sourceSetName),
-            classFiles(files));
+                asPath(dir, "classes", "java", sourceSetName),
+                classFiles(files));
         mock.resources = MockFileTree.create(
-            asPath(dir, "resources", sourceSetName),
-            resourceFiles(files));
+                asPath(dir, "resources", sourceSetName),
+                resourceFiles(files));
 
         var outputs = new ArrayList<>();
         outputs.addAll(mock.classes.getFiles());

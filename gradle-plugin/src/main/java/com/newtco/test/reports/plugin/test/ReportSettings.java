@@ -16,30 +16,38 @@
 
 package com.newtco.test.reports.plugin.test;
 
-import java.util.Set;
-
 import com.newtco.test.reports.api.test.model.Status;
+import com.newtco.test.reports.plugin.PluginVersion;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
+
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
 
 public abstract class ReportSettings implements Named {
 
     protected final String name;
 
     @Inject
-    public ReportSettings(String name, Project project, JUnitXmlReport convention) {
+    public ReportSettings(String name, Project project, JUnitXmlReport jUnitXmlReport) {
         this.name = name;
 
         getEnabled().convention(true);
-        getIncludeSystemErrLog().convention(convention.getIncludeSystemErrLog());
-        getIncludeSystemOutLog().convention(convention.getIncludeSystemOutLog());
-        getOutputPerTestCase().convention(convention.isOutputPerTestCase());
+        getAggregateReports().convention(false);
+        if (PluginVersion.isGradleVersionAtLeast("8.8")) {
+            getIncludeSystemErrLog().convention(jUnitXmlReport.getIncludeSystemErrLog());
+            getIncludeSystemOutLog().convention(jUnitXmlReport.getIncludeSystemOutLog());
+        } else {
+            getIncludeSystemErrLog().convention(true);
+            getIncludeSystemOutLog().convention(true);
+        }
+        getOutputPerTestCase().convention(jUnitXmlReport.isOutputPerTestCase());
         getTestOutcomes().convention(Set.of(Status.FAILED));
     }
 
@@ -54,6 +62,14 @@ public abstract class ReportSettings implements Named {
      */
     @Input
     public abstract Property<Boolean> getEnabled();
+
+    /**
+     * Determines if the reports should be aggregated.
+     *
+     * @return a Property<Boolean> that represents whether the reports will be aggregated
+     */
+    @Input
+    public abstract Property<Boolean> getAggregateReports();
 
     /**
      * Whether the system error log should be included in the report.
@@ -97,7 +113,7 @@ public abstract class ReportSettings implements Named {
                 getTestOutcomes().add(status);
             } else {
                 throw new IllegalArgumentException("Invalid test outcome: " + outcome
-                                                   + ". Must be one of PASSED, SUCCESS, FAILED, FAILURE or SKIPPED");
+                        + ". Must be one of PASSED, SUCCESS, FAILED, FAILURE or SKIPPED");
             }
         }
     }

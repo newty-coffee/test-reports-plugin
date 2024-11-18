@@ -16,13 +16,17 @@
 
 package com.newtco.test.reports.plugin;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import javax.inject.Inject;
-
+import com.newtco.test.reports.plugin.coverage.CoverageReportsExtension;
+import com.newtco.test.reports.plugin.coverage.CoverageReportGenerator;
+import com.newtco.test.reports.plugin.test.TestReportGenerator;
+import com.newtco.test.reports.plugin.test.TestReportsExtension;
+import com.newtco.test.reports.plugin.test.TestSuiteCollector;
+import com.newtco.test.reports.plugin.transform.PluginApiJarTransform;
+import com.newtco.test.reports.plugin.transform.PluginJarType;
+import com.newtco.test.templates.TemplateInstantiator;
+import com.newtco.test.templates.tasks.ProcessReportTemplatesTask;
+import com.newtco.test.util.FilterSet;
+import com.newtco.test.util.Gradle.Actions;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -35,17 +39,17 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
+import org.jetbrains.annotations.NotNull;
 
-import com.newtco.test.reports.plugin.coverage.CoverageReportExtension;
-import com.newtco.test.reports.plugin.coverage.CoverageReportGenerator;
-import com.newtco.test.reports.plugin.test.TestReportGenerator;
-import com.newtco.test.reports.plugin.test.TestReportsExtension;
-import com.newtco.test.reports.plugin.test.TestSuiteCollector;
-import com.newtco.test.templates.TemplateInstantiator;
-import com.newtco.test.templates.tasks.ProcessReportTemplatesTask;
-import com.newtco.test.util.Gradle.Actions;
+import javax.inject.Inject;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static com.newtco.test.reports.plugin.PluginJarType.PLUGIN_JAR_TYPE_ATTRIBUTE;
+import static com.newtco.test.reports.plugin.transform.PluginJarType.PLUGIN_JAR_TYPE_ATTRIBUTE;
 import static com.newtco.test.util.Gradle.Extensions.extensionOf;
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 
@@ -58,7 +62,7 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
     /**
      * Name of the source set added for report templates
      */
-    public static final String REPORT_SOURCESET_NAME = "report";
+    public static final String REPORT_SOURCESET_NAME = "test-reports";
     /**
      * Name within the manifest of the plugin attributes added via the plugin's build.gradle.kts file. Needs to be kept
      * in sync with the value there.
@@ -66,18 +70,18 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
     public static final String PLUGIN_SECTION_NAME   = "plugins/test-reports-plugin/properties";
 
     private final Logger               logger;
-    private final PluginProperties     pluginProperties;
     private final TemplateInstantiator templateInstantiator;
 
     @Inject
     public TestReportsPlugin() {
         this.logger               = Logging.getLogger(TestReportsPlugin.class);
-        this.pluginProperties     = PluginProperties.load(PLUGIN_SECTION_NAME);
         this.templateInstantiator = new TemplateInstantiator();
     }
 
     @Override
-    public void apply(Project project) {
+    public void apply(@NotNull Project project) {
+        PluginVersion.checkGradleVersion();
+
         // Ensure jacoco plugin is also applied since we rely on it
         project.getPluginManager().apply("jacoco");
 
@@ -109,22 +113,22 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
         // to convert it.
         dependencies.getArtifactTypes().named(ArtifactTypeDefinition.JAR_TYPE, jarArtifacts -> {
             jarArtifacts.getAttributes()
-                .attribute(PLUGIN_JAR_TYPE_ATTRIBUTE, PluginJarType.PLUGIN);
+                    .attribute(PLUGIN_JAR_TYPE_ATTRIBUTE, PluginJarType.PLUGIN);
         });
 
         // Register the API transform
         dependencies.registerTransform(PluginApiJarTransform.class, transform -> {
             transform.getFrom()
-                .attribute(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
-                .attribute(PLUGIN_JAR_TYPE_ATTRIBUTE, PluginJarType.PLUGIN);
+                    .attribute(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
+                    .attribute(PLUGIN_JAR_TYPE_ATTRIBUTE, PluginJarType.PLUGIN);
 
             transform.getTo()
-                .attribute(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
-                .attribute(PLUGIN_JAR_TYPE_ATTRIBUTE, PluginJarType.API);
+                    .attribute(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
+                    .attribute(PLUGIN_JAR_TYPE_ATTRIBUTE, PluginJarType.API);
 
             transform.parameters(params -> {
-                params.getTimestamp().set(pluginProperties.getTimestamp());
-                params.getArtifactName().set(pluginProperties.getArtifact());
+                params.getTimestamp().set(PluginVersion.Timestamp);
+                params.getArtifactName().set(PluginVersion.Artifact);
             });
         });
     }
@@ -153,7 +157,7 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
         // Configure the generated java sources for complication. Report templates don't have main/test sources,
         // since they're only used by tests, but they're available to all test source sets
         var templatesJavaSourceDir = project.getLayout().getBuildDirectory()
-            .dir("generated/sources/reportTemplates/java/");
+                .dir("generated/sources/reportTemplates/java/");
         sourceSet.getJava().srcDir(templatesJavaSourceDir);
 
         // Add default templates
@@ -170,18 +174,18 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
         // To generate constructors for the template classes, we need to ensure we can discover original
         // parameter names
         project.getTasks().named(sourceSet.getCompileJavaTaskName(), JavaCompile.class)
-            .configure(compileTask -> {
-                compileTask.dependsOn(ProcessReportTemplatesTask.TASK_NAME);
-                // The generator needs this
-                compileTask.getOptions().getCompilerArgs().add("-parameters");
-            });
+                .configure(compileTask -> {
+                    compileTask.dependsOn(ProcessReportTemplatesTask.TASK_NAME);
+                    // The generator needs this
+                    compileTask.getOptions().getCompilerArgs().add("-parameters");
+                });
 
         // Link the custom sourceset compile task to the default testCompileJava task so it builds automatically
         project.getTasks()
-            .named(sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).getCompileJavaTaskName(), JavaCompile.class)
-            .configure(compile -> {
-                compile.dependsOn(sourceSet.getCompileJavaTaskName());
-            });
+                .named(sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME).getCompileJavaTaskName(), JavaCompile.class)
+                .configure(compile -> {
+                    compile.dependsOn(sourceSet.getCompileJavaTaskName());
+                });
 
         configureTemplatesApiDependencies(project, sourceSet);
 
@@ -199,22 +203,22 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
      */
     private void addDefaultReportTemplates(Project project, Path reportTemplatesDir) {
         logger.lifecycle("Adding default report templates to project {} dir {}",
-            project.getDisplayName(),
-            reportTemplatesDir.toAbsolutePath());
+                project.getDisplayName(),
+                reportTemplatesDir.toAbsolutePath());
 
         var defaultTemplates = List.of(
-            // coverage reports
-            "coverage/SummaryMarkdownReport.jrt",
-            "coverage/DetailedMarkdownReport.jrt",
-            // unit test reports
-            "tests/SummaryMarkdownReport.jrt",
-            "tests/DetailedMarkdownReport.jrt"
+                // coverage reports
+                "coverage/SummaryMarkdownReport.jrt",
+                "coverage/DetailedMarkdownReport.jrt",
+                // unit test reports
+                "tests/SummaryMarkdownReport.jrt",
+                "tests/DetailedMarkdownReport.jrt"
         );
 
         var classLoader = getClass().getClassLoader();
         for (var defaultTemplate : defaultTemplates) {
             var templatePath = reportTemplatesDir.resolve(defaultTemplate);
-            if (pluginProperties.isSnapshot() || !Files.exists(templatePath)) {
+            if (PluginVersion.snapshot() || !Files.exists(templatePath)) {
                 try (var resource = classLoader.getResourceAsStream("report-templates" + "/" + defaultTemplate)) {
                     if (resource != null) {
                         Files.createDirectories(templatePath.getParent());
@@ -244,25 +248,29 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
 
                 // Add the transformed plugin jar
                 dependencies.add(
-                    ((ModuleDependency) project.getDependencies().create(pluginProperties.getCoordinates()))
-                        .attributes(attributes -> {
-                            attributes
-                                .attribute(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
-                                // Adding this attribute informs Gradle to run the transform on this dependency
-                                .attribute(PLUGIN_JAR_TYPE_ATTRIBUTE, PluginJarType.API);
-                        })
+                        ((ModuleDependency) project.getDependencies().create(getPluginCoordinates(project)))
+                                .attributes(attributes -> {
+                                    attributes
+                                            .attribute(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
+                                            // Adding this attribute informs Gradle to run the transform on this dependency
+                                            .attribute(PLUGIN_JAR_TYPE_ATTRIBUTE, PluginJarType.API);
+                                })
                 );
 
                 var jacocoVersion = extensionOf(project, JacocoPluginExtension.class)
-                    .getToolVersion();
+                        .getToolVersion();
 
                 // Add JaCoCo dependencies
                 dependencies.add(project.getDependencies()
-                    .create("org.jacoco:org.jacoco.core:" + jacocoVersion));
+                        .create("org.jacoco:org.jacoco.core:" + jacocoVersion));
                 dependencies.add(project.getDependencies()
-                    .create("org.jacoco:org.jacoco.report:" + jacocoVersion));
+                        .create("org.jacoco:org.jacoco.report:" + jacocoVersion));
             });
         });
+    }
+
+    private Object getPluginCoordinates(Project project) {
+        return PluginVersion.coordinates();
     }
 
     /**
@@ -275,35 +283,37 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
     private void configureTestReports(Project project) {
         project.getTasks().withType(Test.class).configureEach(test -> {
             var extension = test.getExtensions().create("additionalReports",
-                TestReportsExtension.class,
-                project,
-                test
+                    TestReportsExtension.class,
+                    project,
+                    test
             );
 
-            var collector = new TestSuiteCollector(
-                extension.getStackFilters(),
-                extension.getGitLinkRepository().getOrNull(),
-                extension.getGitLinkCommit().getOrNull(),
-                extension.getGitLinkUrlTemplate().get()
-            );
+            AtomicReference<TestSuiteCollector> collector = new AtomicReference<>();
 
             test.doFirst(task -> {
                 if (extension.getJson().getEnabled().get()
-                    || extension.getSummaryMarkdown().getEnabled().get()
-                    || extension.getSummaryMarkdown().getEnabled().get()) {
+                        || extension.getSummaryMarkdown().getEnabled().get()
+                        || extension.getSummaryMarkdown().getEnabled().get()) {
+
+                    collector.set( new TestSuiteCollector(
+                            extension.getStackFilters(),
+                            extension.getGitLinkRepository(),
+                            extension.getGitLinkCommit(),
+                            extension.getGitLinkUrlTemplate()
+                    ));
 
                     // Only collect test data if a report is enabled
-                    test.addTestListener(collector);
-                    test.addTestOutputListener(collector);
+                    test.addTestListener(collector.get());
+                    test.addTestOutputListener(collector.get());
                 }
             });
 
             test.doLast(task -> {
                 if (extension.getJson().getEnabled().get()
-                    || extension.getSummaryMarkdown().getEnabled().get()
-                    || extension.getSummaryMarkdown().getEnabled().get()) {
+                        || extension.getSummaryMarkdown().getEnabled().get()
+                        || extension.getSummaryMarkdown().getEnabled().get()) {
 
-                    generateTestReports(test, collector);
+                    generateTestReports(test, collector.get());
                 }
             });
         });
@@ -315,9 +325,9 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
      */
     private void configureTemplateInstantiator(Project project) {
         templateInstantiator.setPackageName(
-            project.getTasks().named(ProcessReportTemplatesTask.TASK_NAME, ProcessReportTemplatesTask.class)
-                .flatMap(ProcessReportTemplatesTask::getTemplatePackage)
-                .get()
+                project.getTasks().named(ProcessReportTemplatesTask.TASK_NAME, ProcessReportTemplatesTask.class)
+                        .flatMap(ProcessReportTemplatesTask::getTemplatePackage)
+                        .get()
         );
     }
 
@@ -332,10 +342,10 @@ public abstract class TestReportsPlugin implements Plugin<Project> {
         // Add the CoverageReportExtension to all JacocoReport tasks
         project.getTasks().withType(JacocoReport.class).configureEach(jacocoReport -> {
             jacocoReport.getExtensions().create(
-                "additionalReports",
-                CoverageReportExtension.class,
-                project,
-                jacocoReport);
+                    "additionalReports",
+                    CoverageReportsExtension.class,
+                    project,
+                    jacocoReport);
 
             // Generate reports along with the JacocoReport task
             jacocoReport.doLast(Actions.calling(this::generateCoverageReports));

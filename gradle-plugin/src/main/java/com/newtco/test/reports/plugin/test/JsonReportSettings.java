@@ -16,12 +16,12 @@
 
 package com.newtco.test.reports.plugin.test;
 
-import javax.inject.Inject;
-
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
+
+import javax.inject.Inject;
 
 /**
  * Abstract class that extends {@link ReportSettings} to provide specific settings for JSON reports.

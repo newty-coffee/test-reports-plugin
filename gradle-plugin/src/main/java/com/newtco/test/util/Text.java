@@ -34,7 +34,6 @@ public class Text {
      * Checks if the given string is either null or empty.
      *
      * @param value the string to check
-     *
      * @return true if the string is null or empty, false otherwise
      */
     public static boolean isEmpty(String value) {
@@ -45,7 +44,6 @@ public class Text {
      * Checks if the given string is either null or blank.
      *
      * @param value the string to check
-     *
      * @return true if the string is null or blank, false otherwise
      */
     public static boolean isBlank(String value) {
@@ -58,10 +56,10 @@ public class Text {
     public static class Format {
 
         private static final Map<TimeUnit, String> SUFFIXES = new EnumMap<>(Map.of(
-            TimeUnit.HOURS, "h",
-            TimeUnit.MINUTES, "m",
-            TimeUnit.SECONDS, "s",
-            TimeUnit.MILLISECONDS, "ms"
+                TimeUnit.HOURS, "h",
+                TimeUnit.MINUTES, "m",
+                TimeUnit.SECONDS, "s",
+                TimeUnit.MILLISECONDS, "ms"
         ));
 
         private Format() {
@@ -71,7 +69,7 @@ public class Text {
          * Calculates the duration between two time points specified by start and end timestamps.
          *
          * @param start the start timestamp in milliseconds
-         * @param end the end timestamp in milliseconds
+         * @param end   the end timestamp in milliseconds
          * @return a formatted string representation of the duration, adjusted to the most appropriate time unit
          */
         public static String duration(long start, long end) {
@@ -82,7 +80,7 @@ public class Text {
          * Computes the duration between two time points denoted by `start` and `end` Instants.
          *
          * @param start the start instant
-         * @param end the end instant
+         * @param end   the end instant
          * @return a formatted string representation of the duration between the two instants
          */
         public static String duration(Instant start, Instant end) {
@@ -111,7 +109,7 @@ public class Text {
             var unit = getNearestUnit(duration);
 
             var value = duration / (double) TimeUnit.MILLISECONDS.convert(1, unit);
-            var text = "%.3f".formatted(value);
+            var text  = "%.3f".formatted(value);
             if (text.endsWith("000")) {
                 text = text.substring(0, text.length() - 3);
             } else if (text.endsWith("00")) {

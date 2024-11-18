@@ -16,44 +16,43 @@
 
 package com.newtco.test.test;
 
+import java.util.List;
+import java.util.Map;
+
 public class Main {
 
-    public void test1() {
-        System.out.println("test1");
+    public String test1() {
+        return "test1";
     }
 
-    public void test2() {
-        System.out.println("test2");
+    public List<Object> test2() {
+        return List.of("test2", 2, 2.0f, true, Map.of("test2", "test2"));
     }
 
-    public void test3(boolean flag) {
-        if (flag) {
-            print(new TestCallback<String>() {
+    public String test3() {
+        return """
+                test1
+                test2
+                test3
+                """;
+    }
 
-                @Override
-                public void call1() {
-                    System.out.println("test3:call1");
-                }
+    public String test4() {
+        // NO COVERAGE
+        return null;
+    }
 
-                @Override
-                public void call2(String value) {
-                    System.out.println("test3:call2:" + value);
-                }
-            });
+    public interface TestCallback<T> {
+        void callback(T value);
+    }
+
+    public static class NoCoverage {
+        public void test1() {
+            System.out.println("test1");
         }
-        else {
-            System.out.println("test3");
+
+        public void test2() {
+            System.out.println("test2");
         }
-    }
-
-    private void print(TestCallback<String>output) {
-        output.call1();
-        output.call2("call2 output");
-    }
-
-    abstract static class TestCallback<T> {
-        abstract void call1();
-
-        abstract void call2(T value);
     }
 }

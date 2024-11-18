@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package com.newtco.test.reports.plugin;
+package com.newtco.test.reports.plugin.transform;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.zip.ZipFile;
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
-
+import com.newtco.test.reports.api.Template;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -38,22 +29,21 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 
-import com.newtco.test.reports.api.Template;
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.zip.ZipFile;
 
 /**
  * Performs a transformation of plugin JAR files to generate an API-specific JAR. This is achieved by filtering the
  * contents of the input JAR and including only the classes that belong to the API packages.
  */
-abstract class PluginApiJarTransform implements TransformAction<PluginApiJarTransform.Parameters> {
-
-    interface Parameters extends TransformParameters {
-        // Used during development to force the transform to be regenerated
-        @Input
-        Property<String> getTimestamp();
-
-        @Input
-        Property<String> getArtifactName();
-    }
+public abstract class PluginApiJarTransform implements TransformAction<PluginApiJarTransform.Parameters> {
 
     @Inject
     public PluginApiJarTransform() {
@@ -74,8 +64,8 @@ abstract class PluginApiJarTransform implements TransformAction<PluginApiJarTran
         }
 
         var artifactName = getParameters().getArtifactName().get();
-        var apiJarName = pluginJarFile.getName().replace(artifactName, artifactName + "-api");
-        var apiJarFile = outputs.file(apiJarName);
+        var apiJarName   = pluginJarFile.getName().replace(artifactName, artifactName + "-api");
+        var apiJarFile   = outputs.file(apiJarName);
 
         log.info("Transforming {} to {}", pluginJarFile.getName(), apiJarName);
 
@@ -101,14 +91,23 @@ abstract class PluginApiJarTransform implements TransformAction<PluginApiJarTran
             }
         } catch (IOException e) {
             throw new UncheckedIOException("Error transforming %s to %s".formatted(
-                pluginJarFile.getAbsolutePath(),
-                apiJarFile.getAbsolutePath()), e);
+                    pluginJarFile.getAbsolutePath(),
+                    apiJarFile.getAbsolutePath()), e);
         }
     }
 
     private String getClassName(String name) {
         return name.substring(0, name.lastIndexOf('.'))
-            .replace('/', '.')
-            .replace('$', '.');
+                .replace('/', '.')
+                .replace('$', '.');
+    }
+
+    public interface Parameters extends TransformParameters {
+        // Used during development to force the transform to be regenerated
+        @Input
+        Property<String> getTimestamp();
+
+        @Input
+        Property<String> getArtifactName();
     }
 }

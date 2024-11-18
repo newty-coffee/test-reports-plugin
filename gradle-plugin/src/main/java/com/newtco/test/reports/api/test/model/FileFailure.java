@@ -70,6 +70,10 @@ public class FileFailure extends Failure {
         }
 
         var binary = new StringBuilder();
+        if (data.length > limit) {
+            binary.append("[").append(data.length).append(" bytes]: ");
+        }
+
         if (isTextContent(data, limit)) {
             binary.append(new String(data, 0, Math.min(data.length, limit), StandardCharsets.US_ASCII));
         } else {
@@ -104,18 +108,17 @@ public class FileFailure extends Failure {
 
     @Override
     public String toString() {
-        return new StringBuilder("FileFailure {")
-            .append("type=").append(type)
-            .append(", message='").append(message).append('\'')
-            .append(", className='").append(className).append('\'')
-            .append(", stackTrace='").append(stackTrace).append('\'')
-            .append(", lineNumber=").append(lineNumber)
-            .append(", causes=").append(causes)
-            .append(", expectedPath='").append(expectedPath).append('\'')
-            .append(", expectedData=").append(Arrays.toString(expectedData))
-            .append(", actualPath='").append(actualPath).append('\'')
-            .append(", actualData=").append(Arrays.toString(actualData))
-            .append('}')
-            .toString();
+        return "FileFailure {" +
+                "type=" + type +
+                ", message='" + message + '\'' +
+                ", className='" + className + '\'' +
+                ", stackTrace='" + stackTrace + '\'' +
+                ", lineNumber=" + lineNumber +
+                ", causes=" + causes +
+                ", expectedPath='" + expectedPath + '\'' +
+                ", expectedData=" + Arrays.toString(expectedData) +
+                ", actualPath='" + actualPath + '\'' +
+                ", actualData=" + Arrays.toString(actualData) +
+                '}';
     }
 }

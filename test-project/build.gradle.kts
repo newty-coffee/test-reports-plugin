@@ -1,3 +1,5 @@
+import com.newtco.test.reports.plugin.coverage.CoverageReportsExtension
+
 /*
  * Copyright 2024 newty.coffee
  *
@@ -21,14 +23,14 @@ plugins {
     id("com.newtco.test.test-reports-plugin")
 }
 
-repositories {
-    mavenCentral()
 
+repositories {
     // Populated by the plugin project
     maven {
         name = "build"
-        url = uri("../build/repo")
+        url = uri(file("../build/repo"))
     }
+    mavenCentral()
 }
 
 group = project.properties["pluginGroup"] as String
@@ -37,6 +39,7 @@ version = project.properties["pluginVersion"] as String
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.3")
+    testImplementation("org.opentest4j:opentest4j:1.3.0")
 }
 
 
@@ -48,11 +51,6 @@ tasks.withType<Test> {
     useJUnitPlatform()
 
     ignoreFailures = true
-
-    retry {
-        maxRetries = 0
-        maxFailures = 10
-    }
 
     testLogging {
         events("passed", "skipped", "failed")
@@ -73,7 +71,7 @@ tasks.withType<Test> {
         stackFilters {
             include(
                 "org.opentest4j.**",
-                "${project.properties["pluginOrg"]}.**"
+                "com.newtco.**"
             )
         }
 
@@ -81,7 +79,7 @@ tasks.withType<Test> {
 
         json {
             enabled = true
-            aggregateJsonReports = false
+            aggregateJsonReports = true
             includeSystemErrLog = true
             includeSystemOutLog = true
             outputPerTestCase = true
@@ -92,6 +90,7 @@ tasks.withType<Test> {
 
         summaryMarkdown {
             enabled = true
+            aggregateReports = true
             includeSystemErrLog = true
             includeSystemOutLog = true
             outputPerTestCase = true
@@ -99,9 +98,12 @@ tasks.withType<Test> {
 
         detailedMarkdown {
             enabled = true
+            aggregateReports = true
             includeSystemErrLog = true
             includeSystemOutLog = true
             outputPerTestCase = true
+
+            testOutcomes("passed", "failed", "skipped")
         }
     }
 }
@@ -113,14 +115,14 @@ tasks.withType<JacocoReport> {
         csv.required = true
     }
 
-    extensions.configure(com.newtco.test.reports.plugin.coverage.CoverageReportExtension::class) {
+    extensions.configure(CoverageReportsExtension::class) {
         json {
             enabled = true
-            includeLines = false
-            includeMethods = false
+            includeLines = true
+            includeMethods = true
             includeClasses = true
-            includeSources = false
-            simplifiedCounters = true
+            includeSources = true
+            simplifiedCounters = false
         }
 
         summaryMarkdown {

@@ -50,7 +50,7 @@ public class MockUtil {
         }
 
         throw new UnsupportedOperationException("Unsupported Util.asPath() type: " + value.getClass()
-                                                + ". This is typically caused by passing collections to a accepting a vararg parameter that is eventually passed to this one.");
+                + ". This is typically caused by passing collections to a accepting a vararg parameter that is eventually passed to this one.");
     }
 
     public static String extensionOf(Object file) {
@@ -71,21 +71,21 @@ public class MockUtil {
         var dirPath = normalizePath(dir);
 
         return files.stream()
-            .map(MockUtil::normalizePath)
-            .<String>mapMulti((path, tree) -> {
-                int term = -1;
-                while ((term = path.indexOf('/', term + 1)) != -1) {
-                    tree.accept(path.substring(0, term + 1));
-                }
-                tree.accept(path);
-            })
-            .distinct()
-            .sorted()
-            .map(path -> {
-                // Can't use path here because we require terminating / for dirs
-                return dirPath + "/" + path;
-            })
-            .toList();
+                .map(MockUtil::normalizePath)
+                .<String>mapMulti((path, tree) -> {
+                    int term = -1;
+                    while ((term = path.indexOf('/', term + 1)) != -1) {
+                        tree.accept(path.substring(0, term + 1));
+                    }
+                    tree.accept(path);
+                })
+                .distinct()
+                .sorted()
+                .map(path -> {
+                    // Can't use path here because we require terminating / for dirs
+                    return dirPath + "/" + path;
+                })
+                .toList();
     }
 
     public static Path asPath(Object first, Object... more) {
@@ -98,32 +98,32 @@ public class MockUtil {
 
     public static Object[] javaFiles(Object... files) {
         return Stream.of(files)
-            .filter(file -> "java".equals(extensionOf(file)))
-            .toArray(Object[]::new);
+                .filter(file -> "java".equals(extensionOf(file)))
+                .toArray(Object[]::new);
     }
 
     public static Object[] classFiles(Object... files) {
         return Stream.of(files)
-            .filter(file -> "class".equals(extensionOf(file)))
-            .toArray(Object[]::new);
+                .filter(file -> "class".equals(extensionOf(file)))
+                .toArray(Object[]::new);
     }
 
     public static Object[] resourceFiles(Object... files) {
         return Stream.of(files)
-            .filter(file -> !List.of("java", "class").contains(extensionOf(file)))
-            .toArray(Object[]::new);
+                .filter(file -> !List.of("java", "class").contains(extensionOf(file)))
+                .toArray(Object[]::new);
     }
 
     public static Object[] sourceFiles(Object... files) {
         return Stream.of(files)
-            .filter(file -> !"class".equals(extensionOf(file)))
-            .toArray(Object[]::new);
+                .filter(file -> !"class".equals(extensionOf(file)))
+                .toArray(Object[]::new);
     }
 
     public static Object[] outputFiles(Object... files) {
         return Stream.of(files)
-            .filter(file -> !"java".equals(extensionOf(file)))
-            .toArray(Object[]::new);
+                .filter(file -> !"java".equals(extensionOf(file)))
+                .toArray(Object[]::new);
     }
 
     public static Object[] combineFiles(Collection<?>... files) {

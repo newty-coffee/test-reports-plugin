@@ -16,6 +16,8 @@
 
 package com.newtco.test.util;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.Writer;
@@ -24,8 +26,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A class for writing JSON content using a provided Writer object. The JsonWriter class provides functionality to write
@@ -98,8 +98,8 @@ public class JsonWriter {
     /**
      * Process and adds a custom value to the writer using a given context and processor.
      *
-     * @param <T> the type of the context
-     * @param context the context to process
+     * @param <T>       the type of the context
+     * @param context   the context to process
      * @param processor the processor that writes the context to the writer
      * @return the updated JsonWriter instance
      */
@@ -111,8 +111,8 @@ public class JsonWriter {
     /**
      * Adds a JSON array to the writer using an iterator and processor. The processor formats each item in the array.
      *
-     * @param <T> the type of elements in the iterator
-     * @param iterator the iterator of elements to write
+     * @param <T>       the type of elements in the iterator
+     * @param iterator  the iterator of elements to write
      * @param processor the processor that writes each element to the writer
      * @return the updated JsonWriter instance
      */
@@ -149,10 +149,10 @@ public class JsonWriter {
      * Adds a JSON array to the writer using an iterator, context, and processor.
      * The processor formats each item in the array using the provided context.
      *
-     * @param <T> the type of elements in the iterator
-     * @param <U> the type of context
-     * @param iterator the iterator of elements to write
-     * @param context the context used in the processor
+     * @param <T>       the type of elements in the iterator
+     * @param <U>       the type of context
+     * @param iterator  the iterator of elements to write
+     * @param context   the context used in the processor
      * @param processor the processor that writes each element with the context to the writer
      * @return the updated JsonWriter instance
      */
@@ -191,8 +191,8 @@ public class JsonWriter {
      * Adds a JSON array to the writer using a collection and processor.
      * The processor formats each item in the collection.
      *
-     * @param <T> the type of elements in the collection
-     * @param values the collection of elements to write
+     * @param <T>       the type of elements in the collection
+     * @param values    the collection of elements to write
      * @param processor the processor that writes each element to the writer
      * @return the updated JsonWriter instance
      */
@@ -204,10 +204,10 @@ public class JsonWriter {
      * Adds a JSON array to the writer using a collection, context, and processor.
      * The processor formats each item in the collection using the provided context.
      *
-     * @param <T> the type of elements in the collection
-     * @param <U> the type of context
-     * @param values the collection of elements to write
-     * @param context the context used in the processor
+     * @param <T>       the type of elements in the collection
+     * @param <U>       the type of context
+     * @param values    the collection of elements to write
+     * @param context   the context used in the processor
      * @param processor the processor that writes each element with the context to the writer
      * @return the updated JsonWriter instance
      */

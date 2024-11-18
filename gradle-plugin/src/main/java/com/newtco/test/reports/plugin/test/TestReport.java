@@ -16,6 +16,10 @@
 
 package com.newtco.test.reports.plugin.test;
 
+import com.newtco.test.reports.api.test.model.Stats;
+import com.newtco.test.reports.api.test.model.Status;
+import com.newtco.test.reports.api.test.model.TestSuite;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
@@ -23,17 +27,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import com.newtco.test.reports.api.test.model.Stats;
-import com.newtco.test.reports.api.test.model.Status;
-import com.newtco.test.reports.api.test.model.TestSuite;
-
-@SuppressWarnings("UnstableApiUsage")
 public abstract class TestReport {
 
-
     protected static final String HOSTNAME = getHostName();
-
-    public abstract void generateReport(List<TestSuite> suites);
 
     private static String getHostName() {
         try {
@@ -51,24 +47,26 @@ public abstract class TestReport {
             metrics.skipped   = metrics.skipped + suite.skipped;
             metrics.failed    = metrics.failed + suite.failed;
             metrics.startTime = metrics.startTime > 0
-                                ? Math.min(metrics.startTime, suite.startTime)
-                                : suite.startTime;
+                    ? Math.min(metrics.startTime, suite.startTime)
+                    : suite.startTime;
             metrics.endTime   = Math.max(metrics.endTime, suite.endTime);
             metrics.duration  = metrics.endTime - metrics.startTime;
         }
         return metrics;
     }
 
+    public abstract void generateReport(List<TestSuite> suites);
+
     protected static class Options {
 
         protected final Set<Status> statuses;
         protected final String      fileExtension;
-        protected final Path             outputDir;
+        protected final Path        outputDir;
 
         Options(
-            ReportSettings settings,
-            String fileExtension,
-            Path outputDir) {
+                ReportSettings settings,
+                String fileExtension,
+                Path outputDir) {
             this.statuses      = settings.getTestOutcomes().map(EnumSet::copyOf).get();
             this.fileExtension = fileExtension;
             this.outputDir     = outputDir;
@@ -79,26 +77,28 @@ public abstract class TestReport {
         }
 
         public Path resolveReportFile(String name) {
-            var fileName = new StringBuilder("TEST-");
-            for (char ch : name.toCharArray()) {
-                if ((ch >= 'a' && ch <= 'z')
-                    || (ch >= 'A' && ch <= 'Z')
-                    || (ch >= '0' && ch <= '9')
-                    || (ch == '_')
-                    || (ch == '-')
-                    || (ch == '.')
-                    || (ch == '$')) {
-                    fileName.append(ch);
-                } else {
-                    fileName.append('#')
-                        .append(Integer.toHexString(ch));
+            var fileName = new StringBuilder("TEST");
+            if (!name.isEmpty()) {
+                fileName.append("-");
+                for (char ch : name.toCharArray()) {
+                    if ((ch >= 'a' && ch <= 'z')
+                            || (ch >= 'A' && ch <= 'Z')
+                            || (ch >= '0' && ch <= '9')
+                            || (ch == '_')
+                            || (ch == '-')
+                            || (ch == '.')
+                            || (ch == '$')) {
+                        fileName.append(ch);
+                    } else {
+                        fileName.append('#')
+                                .append(Integer.toHexString(ch));
+                    }
                 }
             }
             fileName.append(fileExtension);
 
             return outputDir.resolve(fileName.toString());
         }
-
     }
 }
 

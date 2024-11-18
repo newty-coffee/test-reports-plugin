@@ -16,15 +16,9 @@
 
 package com.newtco.test.templates;
 
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.newtco.test.util.CodeGen;
+
+import java.util.List;
 
 /**
  * TemplateCodeGenerator is responsible for generating Java source code for a class that extends a specified template
@@ -46,21 +40,20 @@ public class TemplateCodeGenerator {
      * @param className The name of the class to be generated.
      * @param parts     The list of template parts used to generate the source code. Each part can be static text, an
      *                  expression, or a code block.
-     *
      * @return The generated Java source code as a string.
      */
     public String generateTemplateClass(
-        String packageName,
-        String className, 
-        Class<?> parentClass,
-        List<TemplateParser.TemplatePart> parts) {
+            String packageName,
+            String className,
+            Class<?> parentClass,
+            List<TemplateParser.TemplatePart> parts) {
 
         var source = new StringBuilder();
 
         // Package and imports
         source.append("package ").append(packageName).append(";\n\n")
-            .append("\n")
-            .append("import ").append(parentClass.getCanonicalName()).append(";\n");
+                .append("\n")
+                .append("import ").append(parentClass.getCanonicalName()).append(";\n");
 
         for (TemplateParser.TemplatePart part : parts) {
             if (part.type == TemplateParser.PartType.IMPORT) {
@@ -77,23 +70,23 @@ public class TemplateCodeGenerator {
         }
 
         source.append("\n\n")
-            .append("public class ").append(className)
-            .append(" extends ").append(parentClass.getSimpleName()).append("<").append(className).append("> {\n")
-            .append("  ").append(signature.getSignature()).append(" {\n")
-            .append("    super(").append(String.join(", ", signature.getParameterNames())).append(");\n")
-            .append("  }\n\n")
-            .append("  @Override\n")
-            .append("  public ").append(className).append(" self() {\n")
-            .append("    return this;\n")
-            .append("  }\n\n")
-            .append("  @Override\n")
-            .append("  public void render() throws Exception {\n");
+                .append("public class ").append(className)
+                .append(" extends ").append(parentClass.getSimpleName()).append("<").append(className).append("> {\n")
+                .append("  ").append(signature.getSignature()).append(" {\n")
+                .append("    super(").append(String.join(", ", signature.getParameterNames())).append(");\n")
+                .append("  }\n\n")
+                .append("  @Override\n")
+                .append("  public ").append(className).append(" self() {\n")
+                .append("    return this;\n")
+                .append("  }\n\n")
+                .append("  @Override\n")
+                .append("  public void render() throws Exception {\n");
 
 
         // Generate code for each template part
         for (TemplateParser.TemplatePart part : parts) {
             if (part.type == TemplateParser.PartType.TEXT) {
-                var text =  escapeJavaString(part.content);
+                var text = escapeJavaString(part.content);
                 source.append("    out(\"").append(text).append("\");\n");
             } else if (part.type == TemplateParser.PartType.EXPRESSION) {
                 source.append("    out(").append(part.content.trim()).append(");\n");
@@ -113,8 +106,8 @@ public class TemplateCodeGenerator {
         var constructors = template.getConstructors();
         if (constructors.length != 1) {
             throw new UnsupportedOperationException(
-                "Expected single constructor for template class %s. Found %d".formatted(
-                    template.getName(), constructors.length));
+                    "Expected single constructor for template class %s. Found %d".formatted(
+                            template.getName(), constructors.length));
         }
 
         return CodeGen.Signature.of(constructors[0], className);

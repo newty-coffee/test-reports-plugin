@@ -21,7 +21,6 @@ public class Names {
      * initials.
      *
      * @param name the fully qualified name to be abbreviated
-     *
      * @return the abbreviated version of the name
      */
     public static String getAbbreviatedPackageName(String name) {
@@ -39,18 +38,18 @@ public class Names {
 
     public static String getClassName(IClassCoverage node) {
         return javaNames.getClassName(
-            node.getName(),
-            node.getSignature(),
-            node.getSuperName(),
-            node.getInterfaceNames());
+                node.getName(),
+                node.getSignature(),
+                node.getSuperName(),
+                node.getInterfaceNames());
     }
 
     public static String getMethodName(IClassCoverage clazz, IMethodCoverage node) {
         return javaNames.getMethodName(
-            clazz.getName(),
-            node.getName(),
-            node.getDesc(),
-            node.getSignature()
+                clazz.getName(),
+                node.getName(),
+                node.getDesc(),
+                node.getSignature()
         );
     }
 }

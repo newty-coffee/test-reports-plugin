@@ -16,10 +16,10 @@
 
 package com.newtco.test.reports.api.coverage.model;
 
+import org.jacoco.core.analysis.IBundleCoverage;
+
 import java.util.Comparator;
 import java.util.List;
-
-import org.jacoco.core.analysis.IBundleCoverage;
 
 
 /**
@@ -38,8 +38,8 @@ public class Bundle extends Coverage<IBundleCoverage> {
 
     public List<Package> getPackages() {
         return coverage.getPackages().stream()
-            .map(Package::new)
-            .sorted(Comparator.comparing(Package::getName))
-            .toList();
+                .map(Package::new)
+                .sorted(Comparator.comparing(Package::getName))
+                .toList();
     }
 }

@@ -1,46 +1,46 @@
 package com.newtco.test.templates;
 
+import com.newtco.test.reports.api.Template;
+import org.junit.jupiter.api.Test;
+
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URISyntaxException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import javax.annotation.Nonnull;
 
-import org.junit.jupiter.api.Test;
-
-import com.newtco.test.reports.api.Template;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 public class TemplateInstantiatorTest {
 
+    private String pathOf(String path) {
+        return Path.of(path).toString();
+    }
+
     @Test
     public void testGetClassPathWithSingleEntry() {
         TemplateInstantiator instantiator = new TemplateInstantiator();
-        instantiator.addClasspath("C:\\example\\path");
+        instantiator.addClasspath(pathOf("/example/path"));
 
         String classPath = instantiator.getClassPath();
-        assertEquals("C:\\example\\path", classPath);
+        assertEquals(pathOf("/example/path"), classPath);
     }
 
     @Test
     public void testGetClassPathWithMultipleEntries() {
+
+
         TemplateInstantiator instantiator = new TemplateInstantiator();
-        instantiator.addClasspath("C:\\example\\path1", "C:\\example\\path2");
+        instantiator.addClasspath(
+                pathOf("example/path2"),
+                pathOf("/example/path2"));
 
         String classPath         = instantiator.getClassPath();
-        String expectedClassPath = "C:\\example\\path1" + File.pathSeparator + "C:\\example\\path2";
+        String expectedClassPath = pathOf("example/path2") + File.pathSeparator + pathOf("/example/path2");
         assertEquals(expectedClassPath, classPath);
     }
 
@@ -53,7 +53,7 @@ public class TemplateInstantiatorTest {
 
     String getTemplateInstantiatorTestClasspath() throws URISyntaxException, IOException {
         var classesDir = Paths.get(TemplateInstantiatorTest.class.getProtectionDomain().getCodeSource().getLocation()
-            .toURI());
+                .toURI());
 
         var classPath = new ArrayList<String>();
         classPath.add(classesDir.toString());
@@ -125,7 +125,7 @@ public class TemplateInstantiatorTest {
         TemplateInstantiator instantiator = new TemplateInstantiator();
         instantiator.setPackageName(null);
 
-        assertEquals(null, instantiator.getPackageName());
+        assertNull(instantiator.getPackageName());
     }
 
     @Test

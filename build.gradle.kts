@@ -21,7 +21,7 @@ plugins {
 /**
  * Gradle task to add a license header to all source files
  */
-abstract class AddHeadersTask : DefaultTask() {
+abstract class AddLicenseHeadersTask : DefaultTask() {
     @Input
     @get:Option(option = "dry-run", description = "Show which files would be modified without making changes.")
     var dryRun: Boolean = false
@@ -60,7 +60,7 @@ abstract class AddHeadersTask : DefaultTask() {
 /**
  * Gradle task to remove a license header from all source files
  */
-abstract class RemoveHeadersTask : DefaultTask() {
+abstract class RemoveLicenseHeadersTask : DefaultTask() {
     @Input
     @get:Option(option = "dry-run", description = "Show which files would be modified without making changes.")
     var dryRun: Boolean = false
@@ -97,4 +97,5 @@ abstract class RemoveHeadersTask : DefaultTask() {
     }
 }
 
-tasks.register<AddHeadersTask>("addHeadersToSourceFiles")
+tasks.register<AddLicenseHeadersTask>("addLicenseHeadersToSourceFiles")
+tasks.register<RemoveLicenseHeadersTask>("removeLicenseHeadersFromSourceFiles")

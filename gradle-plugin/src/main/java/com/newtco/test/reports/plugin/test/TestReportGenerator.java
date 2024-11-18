@@ -16,25 +16,14 @@
 
 package com.newtco.test.reports.plugin.test;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import org.gradle.api.Project;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestDescriptor;
-
 import com.newtco.test.reports.api.test.model.TestSuite;
 import com.newtco.test.templates.TemplateInstantiator;
-import com.newtco.test.util.SourceSetCollectors;
+import org.gradle.api.Project;
+import org.gradle.api.tasks.testing.Test;
+
+import java.util.List;
 
 import static com.newtco.test.util.Gradle.Extensions.extensionOf;
-import static java.util.function.Predicate.not;
 
 /**
  * The {@code TestReportGenerator} class is responsible for generating test reports in JSON and Markdown formats based
@@ -49,7 +38,6 @@ public class TestReportGenerator {
     private final Test                 test;
     private final TestReportsExtension extension;
     private final TestSuiteCollector   collector;
-    private final Logger               log;
     private final TemplateInstantiator instantiator;
 
 
@@ -59,13 +47,12 @@ public class TestReportGenerator {
         this.extension    = extensionOf(testTask, TestReportsExtension.class);
         this.collector    = collector;
         this.instantiator = templateInstantiator;
-        this.log          = testTask.getLogger();
     }
 
     public void generateTestReports() {
         deleteReports();
 
-        var suites  = collector.getTestSuites(test);
+        var suites = collector.getTestSuites(test);
         generateMarkdownReports(suites);
         generateJsonReports(suites);
     }
@@ -77,7 +64,7 @@ public class TestReportGenerator {
         var reportsDir = extension.getOutputLocation().getAsFile().getOrNull();
         if (null != reportsDir && reportsDir.exists()) {
             Object[] reports = reportsDir.listFiles((dir, name) -> name.startsWith("TEST-") &&
-                                                                   (name.endsWith(".json") || name.endsWith(".md")));
+                    (name.endsWith(".json") || name.endsWith(".md")));
             if (reports != null && reports.length > 0) {
                 project.delete(reports);
             }
@@ -88,7 +75,7 @@ public class TestReportGenerator {
         var settings = extension.getJson();
         if (Boolean.TRUE.equals(settings.getEnabled().get())) {
             new JsonTestReport(test, settings, extension.getOutputLocation())
-                .generateReport(suites);
+                    .generateReport(suites);
         }
     }
 
@@ -96,16 +83,13 @@ public class TestReportGenerator {
         var settings = extension.getSummaryMarkdown();
         if (Boolean.TRUE.equals(settings.getEnabled().get())) {
             new MarkdownTestReport(instantiator, test, settings, extension.getOutputLocation())
-                .generateReport(suites);
+                    .generateReport(suites);
         }
 
         settings = extension.getDetailedMarkdown();
         if (Boolean.TRUE.equals(settings.getEnabled().get())) {
-            var report = new MarkdownTestReport(instantiator, test, settings, extension.getOutputLocation());
-
-            for (var suite : suites) {
-                report.generateReport(List.of(suite));
-            }
+            new MarkdownTestReport(instantiator, test, settings, extension.getOutputLocation())
+                    .generateReport(suites);
         }
     }
 }

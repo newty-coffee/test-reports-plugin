@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.newtco.test.reports.api.Template;
-
 /**
  * The TemplateParser class is responsible for parsing template strings into structured parts, which can be either
  * static text, expressions, or code blocks.
@@ -32,16 +30,16 @@ import com.newtco.test.reports.api.Template;
 public class TemplateParser {
 
     private static final Pattern TOKEN_PATTERN = Pattern.compile(
-        // Matches:
-        //  expressions within <%= %>
-        //  import statements
-        //  code blocks within <% %>
-        "(<%=([^%]*?)%>)" +                         // Group 1: <%= ... %> expressions; Group 2 for the inner content
-        "|" +
-        "(^import\\s+([^;\\r\\n]*);[\\r\\n])" +     // Group 2: Import statements; Group 4 for the inner content
-        "|" +
-        "(<%([^%]*?)%>)",                           // Group 5: <% ... %> code blocks; Group 6 for the inner content
-        Pattern.MULTILINE | Pattern.DOTALL
+            // Matches:
+            //  expressions within <%= %>
+            //  import statements
+            //  code blocks within <% %>
+            "(<%=([^%]*?)%>)" +                         // Group 1: <%= ... %> expressions; Group 2 for the inner content
+                    "|" +
+                    "(^import\\s+([^;\\r\\n]*);[\\r\\n])" +     // Group 2: Import statements; Group 4 for the inner content
+                    "|" +
+                    "(<%([^%]*?)%>)",                           // Group 5: <% ... %> code blocks; Group 6 for the inner content
+            Pattern.MULTILINE | Pattern.DOTALL
     );
 
     /**
@@ -49,17 +47,16 @@ public class TemplateParser {
      * the template, including static text, expressions, and code blocks.
      *
      * @param templateContent The content of the template to be parsed.
-     *
      * @return A list of TemplatePart objects representing the parsed parts of the template.
      */
     public List<TemplatePart> parse(String templateContent) {
-        var parts = new ArrayList<TemplatePart>();
+        var parts   = new ArrayList<TemplatePart>();
         var matcher = TOKEN_PATTERN.matcher(templateContent);
 
         int lastIndex = 0;
         while (matcher.find()) {
             int start = matcher.start();
-            int end = matcher.end();
+            int end   = matcher.end();
 
             // Add static text before the token
             if (start > lastIndex) {
@@ -102,10 +99,10 @@ public class TemplateParser {
 
     public static class TemplatePart {
         public PartType type;
-        public String content;
+        public String   content;
 
         public TemplatePart(PartType type, String content) {
-            this.type = type;
+            this.type    = type;
             this.content = content;
         }
 

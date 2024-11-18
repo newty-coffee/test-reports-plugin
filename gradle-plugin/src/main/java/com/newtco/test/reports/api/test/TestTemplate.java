@@ -16,12 +16,12 @@
 
 package com.newtco.test.reports.api.test;
 
-import java.io.Writer;
-import java.util.List;
-
 import com.newtco.test.reports.api.MarkdownTemplate;
 import com.newtco.test.reports.api.test.model.Stats;
 import com.newtco.test.reports.api.test.model.TestSuite;
+
+import java.io.Writer;
+import java.util.List;
 
 public abstract class TestTemplate<T extends TestTemplate<T>> extends MarkdownTemplate<T> {
     protected final TestSettings    settings;

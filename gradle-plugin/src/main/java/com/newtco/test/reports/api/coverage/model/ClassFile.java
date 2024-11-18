@@ -1,9 +1,9 @@
 package com.newtco.test.reports.api.coverage.model;
 
-import java.util.List;
-
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.analysis.IMethodCoverage;
+
+import java.util.List;
 
 /**
  * A representation of a class file's coverage information. This class extends the generic Coverage class for
@@ -37,8 +37,8 @@ public class ClassFile extends Coverage<IClassCoverage> {
 
     public List<Method> getMethods() {
         return coverage.getMethods().stream()
-            .map(this::newMethod)
-            .toList();
+                .map(this::newMethod)
+                .toList();
     }
 
     private Method newMethod(IMethodCoverage method) {

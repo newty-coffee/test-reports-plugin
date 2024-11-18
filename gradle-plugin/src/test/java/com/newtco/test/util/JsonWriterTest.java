@@ -65,7 +65,7 @@ public class JsonWriterTest {
         StringWriter writer     = new StringWriter();
         JsonWriter   jsonWriter = new JsonWriter(writer);
 
-        jsonWriter.value((String) null);
+        jsonWriter.value(null);
 
         assertEquals("null", writer.toString());
     }

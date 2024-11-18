@@ -65,15 +65,14 @@ public class Failure {
 
     @Override
     public String toString() {
-        return new StringBuilder("Failure {")
-            .append("type=").append(type)
-            .append(", message='").append(message).append('\'')
-            .append(", className='").append(className).append('\'')
-            .append(", stackTrace='").append(stackTrace).append('\'')
-            .append(", lineNumber=").append(lineNumber)
-            .append(", causes=").append(causes)
-            .append('}')
-            .toString();
+        return "Failure {" +
+                "type=" + type +
+                ", message='" + message + '\'' +
+                ", className='" + className + '\'' +
+                ", stackTrace='" + stackTrace + '\'' +
+                ", lineNumber=" + lineNumber +
+                ", causes=" + causes +
+                '}';
     }
 }
 

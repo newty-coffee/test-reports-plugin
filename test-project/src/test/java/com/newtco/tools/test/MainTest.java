@@ -14,105 +14,86 @@
  * limitations under the License.
  */
 
-package com.newtco.tools.test;// Import necessary libraries
-
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
+package com.newtco.tools.test;
 
 import com.newtco.test.test.Main;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.FileInfo;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 // Define MainTest class
 public class MainTest {
 
-    /*
-    MainTest class for testing Main class. Contains test methods for Main.test1, test2, and test3 methods.
-     */
 
     @Test
     public void test1_Test() {
-
-        // Create objects of ByteArrayOutputStream and PrintStream
-        ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
-        PrintStream standardOut = System.out;
-
-        // Change the print statements to print in the outputStreamCaptor
-        System.setOut(new PrintStream(outputStreamCaptor));
-
-        // Instantiate Main class and call test1 method
-        Main main = new Main();
-        main.test1();
-
-        // Reset the standard out stream
-        System.setOut(standardOut);
-
         // Assert the result
-        assertEquals("test1\n", outputStreamCaptor.toString());
+        assertEquals("test1", new Main().test1());
     }
+
 
     @Test
     public void test2_Test() {
-
-        // Create objects of ByteArrayOutputStream and PrintStream
-        ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
-        PrintStream standardOut = System.out;
-
-        // Change the print statements to print in the outputStreamCaptor
-        System.setOut(new PrintStream(outputStreamCaptor));
-
-        // Instantiate Main class and call test2 method
-        Main main = new Main();
-        main.test2();
-
-        // Reset the standard out stream
-        System.setOut(standardOut);
+        // Define the expected result
+        List<Object> expected = List.of("test2", 2, 2.0f, true, Map.of("test2", "test2"));
 
         // Assert the result
-        assertEquals("test2\n", outputStreamCaptor.toString());
+        assertEquals(expected, new Main().test2());
     }
 
     @Test
-    public void test3_True_Test() {
-
-        // Create objects of ByteArrayOutputStream and PrintStream
-        ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
-        PrintStream standardOut = System.out;
-
-        // Change the print statements to print in the outputStreamCaptor
-        System.setOut(new PrintStream(outputStreamCaptor));
-
-        // Instantiate Main class and call test3 method with true flag
-        Main main = new Main();
-        main.test3(true);
-
-        // Reset the standard out stream
-        System.setOut(standardOut);
-
-        // Assert the result
-        assertEquals("test3:true\n", outputStreamCaptor.toString());
+    public void test3_Test() {
+        String expected = """
+                test1
+                test2
+                `test3`
+                unexpected line
+                """;
+        assertEquals(expected, new Main().test3());
     }
 
     @Test
-    public void test3_False_Test() {
-
-        // Create objects of ByteArrayOutputStream and PrintStream
-        ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
-        PrintStream standardOut = System.out;
-
-        // Change the print statements to print in the outputStreamCaptor
-        System.setOut(new PrintStream(outputStreamCaptor));
-
-        // Instantiate Main class and call test3 method with false flag
-        Main main = new Main();
-        main.test3(false);
-
-        // Reset the standard out stream
-        System.setOut(standardOut);
-
-        // Assert the result
-        assertEquals("test3:false\n", outputStreamCaptor.toString());
+    public void test_FrameworkException() {
+        @SuppressWarnings({"NumericOverflow", "divzero"}) int x = 1 / 0;
     }
+
+    @Test
+    public void test_FileInfo() {
+        var expectedData = "\n ! \" # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \\ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ \n";
+        var actualData = new StringBuilder(expectedData).reverse().toString();
+
+        FileInfo expected = new FileInfo("/path/expected", expectedData.getBytes());
+        FileInfo actual   = new FileInfo("/path/actual", actualData.getBytes());
+        assertEquals(expected, actual, "File contents match");
+    }
+
+    static class TestCallbackImpl implements Main.TestCallback<String> {
+        String result;
+
+        @Override
+        public void callback(String value) {
+            this.result = value;
+        }
+    }
+
+    @Test
+    void testCallbackWithNonNullValue() {
+        TestCallbackImpl callbackImpl = new TestCallbackImpl();
+        callbackImpl.callback("testValue");
+        assertEquals("testValue", callbackImpl.result);
+    }
+
+    @Test
+    void testCallbackWithNullValue() {
+        TestCallbackImpl callbackImpl = new TestCallbackImpl();
+        callbackImpl.callback(null);
+        assertNull(callbackImpl.result);
+    }
+
 }
