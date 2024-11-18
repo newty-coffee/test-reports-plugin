@@ -1,0 +1,59 @@
+<%
+// Detailed markdown report template for JaCoCo coverage data.
+%>
+
+## Coverage Report - <%= getBundle().getName() %>
+
+<details>
+    <summary>Source files covered:</summary>
+
+```gitignore
+# May contain additional source files with coverage affected by changes to test code.
+<%
+for (var pkg : getBundle().getPackages()) {
+    for (var src : pkg.getSourceFiles()) {
+        out(getBundle().getName(), "/**/", pkg.getName().replace('.', '/'), "/", src.getName());
+    }
+}
+%>
+```
+</details>
+
+
+| Packages / Classes | % Instructions<br/>Covered | % Classes | % Methods |
+|:-|:-:|:-:|:-:|
+<%
+for (var pkg : getBundle().getPackages()) {
+    if (pkg.containsCode()) {
+        int classes = 0;
+        for (var clz : pkg.getClasses()) {
+            if (clz.containsCode()) {
+                var counters = clz.getCounters();
+
+                out("|", clz.getQualifiedName(),
+                    "|", badge(counters.getInstructions()),
+                    "|", badge(counters.getClasses()),
+                    "|", badge(counters.getMethods()),
+                    "|\n");
+                classes += 1;
+            }
+        }
+        if (classes > 0) {
+            var counters = pkg.getCounters();
+
+            out("|<i>Total ", pkg.getName(), ".*</i>",
+                "|", badge(counters.getInstructions()),
+                "|", badge(counters.getClasses()),
+                "|", badge(counters.getMethods()),
+                "|\n");
+            out("|&nbsp;|\n");
+        }
+    }
+}
+var counters = bundle.getCounters();
+out("|<i>Overall Total:</i>",
+    "|", badge(counters.getInstructions()),
+    "|", badge(counters.getClasses()),
+    "|", badge(counters.getMethods()),
+    "|\n");
+%>
