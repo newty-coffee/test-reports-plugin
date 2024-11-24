@@ -28,6 +28,34 @@ public class Stats {
     public long   endTime;
     public long   duration;
 
+    public static Stats collect(Collection<? extends Stats> containers) {
+        var combined = new Stats();
+        for (var stats : containers) {
+            // Once we have failed status, we don't change it
+            if (combined.status != Status.FAILED) {
+                combined.status = stats.status;
+            }
+            combined.total    = combined.total + stats.total;
+            combined.passed   = combined.passed + stats.passed;
+            combined.skipped  = combined.skipped + stats.skipped;
+            combined.failed   = combined.failed + stats.failed;
+            combined.duration = combined.endTime - combined.startTime;
+
+            if (combined.startTime > 0 && stats.startTime > 0) {
+                combined.startTime = Math.min(combined.startTime, stats.startTime);
+            } else if (stats.startTime > 0) {
+                combined.startTime = stats.startTime;
+            }
+
+            if (combined.endTime > 0 && stats.endTime > 0) {
+                combined.endTime = Math.max(combined.endTime, stats.endTime);
+            } else if (stats.endTime > 0) {
+                combined.endTime = stats.endTime;
+            }
+        }
+        return combined;
+    }
+
     public Status getStatus() {
         return status;
     }
@@ -58,33 +86,5 @@ public class Stats {
 
     public long getDuration() {
         return duration;
-    }
-
-    public static Stats collect(Collection<? extends Stats> containers) {
-        var combined = new Stats();
-        for (var stats : containers) {
-            // Once we have failed status, we don't change it
-            if (combined.status != Status.FAILED) {
-                combined.status = stats.status;
-            }
-            combined.total    = combined.total + stats.total;
-            combined.passed   = combined.passed + stats.passed;
-            combined.skipped  = combined.skipped + stats.skipped;
-            combined.failed   = combined.failed + stats.failed;
-            combined.duration = combined.endTime - combined.startTime;
-
-            if (combined.startTime > 0 && stats.startTime > 0) {
-                combined.startTime = Math.min(combined.startTime, stats.startTime);
-            } else if (stats.startTime > 0) {
-                combined.startTime = stats.startTime;
-            }
-
-            if (combined.endTime > 0 && stats.endTime > 0) {
-                combined.endTime = Math.max(combined.endTime, stats.endTime);
-            } else if (stats.endTime > 0) {
-                combined.endTime = stats.endTime;
-            }
-        }
-        return combined;
     }
 }

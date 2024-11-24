@@ -16,19 +16,18 @@
 
 package com.newtco.test.reports.plugin.coverage;
 
-import java.nio.file.Files;
-import java.time.Instant;
-
+import com.newtco.test.reports.api.coverage.Badge;
+import com.newtco.test.reports.api.coverage.CoverageSettings;
+import com.newtco.test.reports.api.coverage.model.Bundle;
+import com.newtco.test.templates.TemplateInstantiator;
+import com.newtco.test.util.Text;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 import org.jacoco.core.analysis.IBundleCoverage;
 
-import com.newtco.test.reports.api.coverage.Badge;
-import com.newtco.test.reports.api.coverage.model.Bundle;
-import com.newtco.test.reports.api.coverage.CoverageSettings;
-import com.newtco.test.templates.TemplateInstantiator;
-import com.newtco.test.util.Text;
+import java.nio.file.Files;
+import java.time.Instant;
 
 /**
  * The MarkdownCoverageReport class generates a Markdown-based code coverage report using JaCoCo and bundle coverage
@@ -64,18 +63,18 @@ public class MarkdownCoverageReport implements CoverageReport {
         try (var writer = Files.newBufferedWriter(outputFile)) {
             var start = Instant.now();
             var template = instantiator.createTemplate(getTemplateName(),
-                writer,
-                getTemplateSettings(),
-                new Bundle(bundle),
-                new Badge(settings.getBadgeStyle().getOrElse("flat"),
-                    settings.getCurrentColorScheme().getColors())
-               );
+                    writer,
+                    getTemplateSettings(),
+                    new Bundle(bundle),
+                    new Badge(settings.getBadgeStyle().getOrElse("flat"),
+                            settings.getCurrentColorScheme().getColors())
+            );
             template.render();
             var end = Instant.now();
 
             log.lifecycle("Finished generating Markdown coverage report ({}) to: file:///{}",
-                Text.Format.duration(start, end),
-                outputFile.toString().replace('\\', '/'));
+                    Text.Format.duration(start, end),
+                    outputFile.toString().replace('\\', '/'));
         } catch (Exception e) {
             throw new GradleException("Failed to write Markdown coverage report", e);
         }

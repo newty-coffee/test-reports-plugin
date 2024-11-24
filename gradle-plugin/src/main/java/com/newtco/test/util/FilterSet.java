@@ -16,13 +16,13 @@
 
 package com.newtco.test.util;
 
+import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 
 /**
  * The {@code FilterSet} class allows for managing include and exclude string patterns with an optional case sensitivity
@@ -53,8 +53,8 @@ public class FilterSet {
             var include = Objects.toString(value, null);
             if (include != null) {
                 includes.add(caseSensitive
-                             ? include.toLowerCase()
-                             : include);
+                        ? include.toLowerCase()
+                        : include);
             }
         }
     }
@@ -68,8 +68,8 @@ public class FilterSet {
             var exclude = Objects.toString(value, null);
             if (exclude != null) {
                 excludes.add(caseSensitive
-                             ? exclude.toLowerCase()
-                             : exclude);
+                        ? exclude.toLowerCase()
+                        : exclude);
             }
         }
     }
@@ -89,12 +89,12 @@ public class FilterSet {
         }
 
         var includesRgx = includes.isEmpty()
-                          ? null
-                          : Pattern.compile(antToRegex(includes), caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
+                ? null
+                : Pattern.compile(antToRegex(includes), caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
 
         var excludesRgx = excludes.isEmpty()
-                          ? null
-                          : Pattern.compile(antToRegex(excludes), caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
+                ? null
+                : Pattern.compile(antToRegex(excludes), caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
 
         return (value) -> {
             // The rules are:
@@ -111,34 +111,34 @@ public class FilterSet {
 
     private String antToRegex(Set<String> patterns) {
         return patterns.stream()
-            .map(pattern -> {
-                    var regex = new StringBuilder();
-                    for (int i = 0, j = 1, k = pattern.length(); i < k; i++, j = i + 1) {
-                        char ch = pattern.charAt(i);
-                        switch (ch) {
-                            case '.':
-                            case '$':
-                                regex.append('\\').append(ch);
-                                break;
-                            case '?':
-                                regex.append('.');
-                                break;
-                            case '*':
-                                if (j < k && pattern.charAt(j) == '*') {
-                                    regex.append(".*");
-                                } else {
-                                    regex.append("[^.]*");
+                .map(pattern -> {
+                            var regex = new StringBuilder();
+                            for (int i = 0, j = 1, k = pattern.length(); i < k; i++, j = i + 1) {
+                                char ch = pattern.charAt(i);
+                                switch (ch) {
+                                    case '.':
+                                    case '$':
+                                        regex.append('\\').append(ch);
+                                        break;
+                                    case '?':
+                                        regex.append('.');
+                                        break;
+                                    case '*':
+                                        if (j < k && pattern.charAt(j) == '*') {
+                                            regex.append(".*");
+                                        } else {
+                                            regex.append("[^.]*");
+                                        }
+                                        break;
+                                    default:
+                                        regex.append(ch);
+                                        break;
                                 }
-                                break;
-                            default:
-                                regex.append(ch);
-                                break;
-                        }
-                    }
+                            }
 
-                    return regex.toString();
-                }
-            )
-            .collect(Collectors.joining("|", "^(", ")$"));
+                            return regex.toString();
+                        }
+                )
+                .collect(Collectors.joining("|", "^(", ")$"));
     }
 }

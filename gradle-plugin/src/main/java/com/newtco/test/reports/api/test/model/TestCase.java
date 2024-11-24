@@ -70,25 +70,24 @@ public class TestCase extends Stats {
 
     @Override
     public String toString() {
-        return new StringBuilder("TestCase{")
-            .append("total=").append(total)
-            .append(", passed=").append(passed)
-            .append(", skipped=").append(skipped)
-            .append(", failed=").append(failed)
-            .append(", startTime=").append(startTime)
-            .append(", endTime=").append(endTime)
-            .append(", duration=").append(duration)
-            .append(", id=").append(id)
-            .append(", status=").append(status)
-            .append(", name='").append(name).append('\'')
-            .append(", displayName='").append(displayName).append('\'')
-            .append(", className='").append(className).append('\'')
-            .append(", sourceFile='").append(sourceFile).append('\'')
-            .append(", url='").append(url).append('\'')
-            .append(", stdError='").append(stdErr).append('\'')
-            .append(", stdOutput='").append(stdOut).append('\'')
-            .append(", failures=").append(failures)
-            .append('}')
-            .toString();
+        return "TestCase{" +
+                "total=" + total +
+                ", passed=" + passed +
+                ", skipped=" + skipped +
+                ", failed=" + failed +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", duration=" + duration +
+                ", id=" + id +
+                ", status=" + status +
+                ", name='" + name + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", className='" + className + '\'' +
+                ", sourceFile='" + sourceFile + '\'' +
+                ", url='" + url + '\'' +
+                ", stdError='" + stdErr + '\'' +
+                ", stdOutput='" + stdOut + '\'' +
+                ", failures=" + failures +
+                '}';
     }
 }

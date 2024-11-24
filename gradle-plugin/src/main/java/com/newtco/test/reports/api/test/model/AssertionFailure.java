@@ -30,16 +30,15 @@ public class AssertionFailure extends Failure {
 
     @Override
     public String toString() {
-        return new StringBuilder("AssertionFailure {")
-            .append("type=").append(type)
-            .append(", message='").append(message).append('\'')
-            .append(", className='").append(className).append('\'')
-            .append(", stackTrace='").append(stackTrace).append('\'')
-            .append(", lineNumber=").append(lineNumber)
-            .append(", causes=").append(causes)
-            .append(", expected='").append(expected).append('\'')
-            .append(", actual='").append(actual).append('\'')
-            .append('}')
-            .toString();
+        return "AssertionFailure {" +
+                "type=" + type +
+                ", message='" + message + '\'' +
+                ", className='" + className + '\'' +
+                ", stackTrace='" + stackTrace + '\'' +
+                ", lineNumber=" + lineNumber +
+                ", causes=" + causes +
+                ", expected='" + expected + '\'' +
+                ", actual='" + actual + '\'' +
+                '}';
     }
 }

@@ -16,75 +16,53 @@
 
 package com.newtco.test.reports.plugin.test;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.newtco.test.reports.api.test.model.*;
+import com.newtco.test.reports.plugin.PluginVersion;
+import com.newtco.test.util.FilterSet;
+import com.newtco.test.util.GitLinkTemplate;
+import com.newtco.test.util.SourceSetCollectors;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.testing.*;
+import org.gradle.testing.base.TestingExtension;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestFailure;
-import org.gradle.api.tasks.testing.TestFailureDetails;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.api.tasks.testing.TestOutputListener;
-import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.testing.base.TestingExtension;
-
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.newtco.test.reports.api.test.model.AssertionFailure;
-import com.newtco.test.reports.api.test.model.Failure;
-import com.newtco.test.reports.api.test.model.FailureType;
-import com.newtco.test.reports.api.test.model.FileFailure;
-import com.newtco.test.reports.api.test.model.Stats;
-import com.newtco.test.reports.api.test.model.Status;
-import com.newtco.test.reports.api.test.model.TestCase;
-import com.newtco.test.reports.api.test.model.TestSuite;
-import com.newtco.test.util.FilterSet;
-import com.newtco.test.util.SourceSetCollectors;
-import com.newtco.test.util.UrlTemplate;
 
 import static com.newtco.test.util.Gradle.Extensions.extensionOf;
-import static com.newtco.test.util.Text.isEmpty;
 
-@SuppressWarnings("UnstableApiUsage")
 public class TestSuiteCollector implements TestListener, TestOutputListener {
 
     private final AtomicInteger                  idGenerator;
     private final Map<String, TestSuite>         nodes;
     private final Map<TestDescriptor, StdOutput> outputs;
     private final FilterSet                      stackFilterSet;
-    private final String                         repository;
-    private final String                         sha;
-    private final UrlTemplate.UrlBuilder         urlBuilder;
+    private final Provider<String>               repository;
+    private final Provider<String>               commit;
+    private final Provider<String>               urlTemplate;
+//    private final UrlTemplate.UrlBuilder         urlBuilder;
 
-    public TestSuiteCollector(
-        FilterSet stackFilterSet,
-        String repository,
-        String sha,
-        String urlTemplate) {
+
+    public TestSuiteCollector(FilterSet stackFilterSet, Provider<String> repository, Provider<String> commit, Provider<String> urlTemplate) {
         this.idGenerator    = new AtomicInteger(0);
         this.nodes          = new ConcurrentHashMap<>();
         this.outputs        = new ConcurrentHashMap<>();
         this.stackFilterSet = stackFilterSet;
         this.repository     = repository;
-        this.sha            = sha;
-        this.urlBuilder     = UrlTemplate.createUrlBuilder(urlTemplate);
+        this.commit         = commit;
+        this.urlTemplate    = urlTemplate;
     }
 
     @Override
@@ -133,11 +111,13 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
 
     @Nonnull
     public List<TestSuite> getTestSuites(Test test) {
-        var suites = List.copyOf(nodes.values());
+        var urlBuilder = GitLinkTemplate.createLinkBuilder(urlTemplate.get());
 
-        finalizeTestSuites(test, suites);
+        var values = new ArrayList<>(nodes.values());
+        finalizeTestSuites(test, values, urlBuilder);
+        values.sort(Comparator.comparing(TestSuite::getStatus));
 
-        return suites;
+        return values;
     }
 
     private String nodeKeyOf(TestDescriptor descriptor) {
@@ -161,7 +141,7 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
     private TestCase getTestCase(TestSuite suite, TestDescriptor descriptor) {
         for (var test : suite.tests) {
             if (Objects.equals(test.name, descriptor.getName())
-                && Objects.equals(test.className, descriptor.getClassName())) {
+                    && Objects.equals(test.className, descriptor.getClassName())) {
                 return test;
             }
         }
@@ -169,35 +149,37 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
         return null;
     }
 
-    private void finalizeTestSuites(Test test, List<TestSuite> suites) {
+    private void finalizeTestSuites(Test test, Collection<TestSuite> suites, GitLinkTemplate.GitLinkBuilder gitLinkBuilder) {
         var sourceFiles = getTestSourceFiles(suites, test);
         var stackFilter = stackFilterSet.asPredicate();
         for (var suite : suites) {
-            finalizeTestCases(test.getProject().getRootDir().toPath(), suite.getTests(), sourceFiles, stackFilter);
+            finalizeTestCases(test.getProject().getRootDir().toPath(), suite.tests, sourceFiles, stackFilter, gitLinkBuilder);
+            suite.tests.sort(Comparator.comparing(TestCase::getStatus));
         }
     }
 
     private void finalizeTestCases(
-        Path rootDir,
-        List<TestCase> testsCases,
-        Map<String, Path> sourceFiles,
-        Predicate<String> stackFilter) {
+            Path rootDir,
+            List<TestCase> testsCases,
+            Map<String, Path> sourceFiles,
+            Predicate<String> stackFilter,
+            GitLinkTemplate.GitLinkBuilder gitLinkBuilder) {
 
         for (var testcase : testsCases) {
             var sourceFile = sourceFiles.get(testcase.getOuterClassName());
 
             if (sourceFile != null) {
                 testcase.sourceFile = rootDir.relativize(sourceFile).toString()
-                    .replace('\\', '/');
-                testcase.url        = getUrl(testcase.sourceFile);
+                        .replace('\\', '/');
+                testcase.url        = getUrl(gitLinkBuilder, testcase.sourceFile);
             }
 
             for (var failure : testcase.failures) {
                 failure.lineNumber = LineNumberResolver.getFailureLineNumber(
-                    testcase.className,
-                    testcase.name,
-                    failure.stackTrace,
-                    sourceFile
+                        testcase.className,
+                        testcase.name,
+                        failure.stackTrace,
+                        sourceFile
                 );
 
                 failure.stackTrace = filterStackTrace(failure.stackTrace, stackFilter);
@@ -211,11 +193,10 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
      *
      * @param suites the list of TestSuite objects containing the test cases
      * @param test   the Test object that provides additional context for retrieving source sets
-     *
      * @return a map where the key is the fully qualified class name, and the value is the relative path of the source
      * file from the project root directory.
      */
-    private Map<String, Path> getTestSourceFiles(List<TestSuite> suites, Test test) {
+    private Map<String, Path> getTestSourceFiles(Collection<TestSuite> suites, Test test) {
         var testClassNames = getTestCaseClassNames(suites);
         if (testClassNames.isEmpty()) {
             return Map.of();
@@ -224,50 +205,48 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
         var sourceSets = getTestSourceSets(test);
 
         return SourceSetCollectors.sourcesMatching(
-            sourceSets,
-            (className, element) -> testClassNames.contains(className),
-            (className, element) -> element.getFile(),
-            (fileMap) -> {
-                // Convert to className -> file paths
-                var converted = new HashMap<String, Path>();
-                for (var entry : fileMap.entrySet()) {
-                    // If the SourceSets have overlapping files, this will take the last one
-                    var previous = converted.put(entry.getValue(), entry.getKey().toPath());
-                    if (previous != null) {
-                        test.getLogger()
-                            .warn(
-                                "Duplicate SourceSet file \"{}\" detected for class {} from SourceSets {}. Line numbers of test failures may be inaccurate.",
-                                previous,
-                                entry.getValue(),
-                                sourceSets.stream().map(SourceSet::getName).collect(Collectors.joining(", ")));
+                sourceSets,
+                (className, element) -> testClassNames.contains(className),
+                (className, element) -> element.getFile(),
+                (fileMap) -> {
+                    // Convert to className -> file paths
+                    var converted = new HashMap<String, Path>();
+                    for (var entry : fileMap.entrySet()) {
+                        // If the SourceSets have overlapping files, this will take the last one
+                        var previous = converted.put(entry.getValue(), entry.getKey().toPath());
+                        if (previous != null) {
+                            test.getLogger().warn("Duplicate SourceSet file \"{}\" detected for class {} from SourceSets {}. Line numbers of test failures may be inaccurate.",
+                                    previous,
+                                    entry.getValue(),
+                                    sourceSets.stream().map(SourceSet::getName).collect(Collectors.joining(", ")));
+                        }
                     }
-                }
-                return converted;
-            });
+                    return converted;
+                });
     }
 
     /**
      * Retrieves a set of unique outer class names from the provided list of test suites.
      *
      * @param suites the list of TestSuite objects from which to extract the test case class names
-     *
      * @return a set of unique test case class names
      */
-    private Set<String> getTestCaseClassNames(List<TestSuite> suites) {
+    private Set<String> getTestCaseClassNames(Collection<TestSuite> suites) {
         return suites.stream()
-            .map(TestSuite::getTests)
-            .flatMap(List::stream)
-            .map(TestCase::getOuterClassName)
-            .collect(Collectors.toSet());
+                .map(TestSuite::getTests)
+                .flatMap(List::stream)
+                .map(TestCase::getOuterClassName)
+                .collect(Collectors.toSet());
     }
 
     /**
      * Retrieves the source sets associated with the specified test task.
      *
      * @param test the test for which the source sets are to be retrieved
-     *
      * @return a list of source sets associated with the test
      */
+    // meets minimum gradle version 7.6
+    @SuppressWarnings("UnstableApiUsage")
     private List<SourceSet> getTestSourceSets(Test test) {
         var taskName   = test.getName();
         var sourceSets = new ArrayList<SourceSet>();
@@ -287,7 +266,7 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
 
     private boolean isGradleSuite(String name) {
         return name.startsWith("Gradle Test Executor")
-               || name.startsWith("Gradle Test Run");
+                || name.startsWith("Gradle Test Run");
     }
 
     private TestSuite createTestSuite(TestDescriptor descriptor) {
@@ -326,8 +305,8 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
         stats.skipped   = stats.skipped + result.getSkippedTestCount();
         stats.failed    = stats.failed + result.getFailedTestCount();
         stats.startTime = stats.startTime > 0
-                          ? Math.min(stats.startTime, result.getStartTime())
-                          : result.getStartTime();
+                ? Math.min(stats.startTime, result.getStartTime())
+                : result.getStartTime();
         stats.endTime   = Math.max(stats.endTime, result.getEndTime());
         stats.duration  = stats.endTime - stats.startTime;
     }
@@ -341,6 +320,8 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
         }
     }
 
+    // meets minimum gradle version 7.6
+    @SuppressWarnings("UnstableApiUsage")
     private void updateTestCase(TestCase test, TestDescriptor descriptor, TestResult result, StdOutput output) {
         // Only change the outcome if the test hasn't passed yet. This occurs when retries are done. Once a test has
         // passed, the only thing collected are outputs and failures
@@ -355,7 +336,8 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
         test.failures.addAll(createFailures(result.getFailures()));
     }
 
-
+    // meets minimum gradle version 7.6
+    @SuppressWarnings("UnstableApiUsage")
     private TestCase createTestCase(TestDescriptor descriptor, TestResult result, StdOutput output) {
         var test = new TestCase();
         test.id          = idGenerator.incrementAndGet();
@@ -379,6 +361,8 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
         return test;
     }
 
+    // meets minimum gradle version 7.6
+    @SuppressWarnings("UnstableApiUsage")
     private List<Failure> createFailures(List<TestFailure> testFailures) {
         var failures = new ArrayList<Failure>();
 
@@ -389,6 +373,8 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
         return failures;
     }
 
+    // meets minimum gradle version 7.6
+    @SuppressWarnings("UnstableApiUsage")
     private Failure createFailure(TestFailure testFailure) {
         var details = testFailure.getDetails();
 
@@ -406,6 +392,11 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
                 yield assertion;
             }
             case FILE -> {
+                // Should not happen with gradle < 8.3
+                if (!PluginVersion.isGradleVersionAtLeast("8.3")) {
+                    throw new IllegalStateException("Unsupported use of Gradle 8.3 features in plugin. Please upgrade to Gradle 8.3 or later or contact the developers of this plugin to report this issue.");
+                }
+
                 var file = new FileFailure();
                 file.type         = FailureType.FILE;
                 file.expectedPath = details.getExpected();
@@ -517,19 +508,25 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
         return filtered.toString();
     }
 
+    // meets minimum gradle version 7.6
+    @SuppressWarnings("UnstableApiUsage")
     private FailureType getFailureType(TestFailureDetails details) {
-        if (details.isFileComparisonFailure()) {
-            return FailureType.FILE;
-        } else if (details.isAssertionFailure()) {
+        if (PluginVersion.isGradleVersionAtLeast("8.3")) {
+            if (details.isFileComparisonFailure()) {
+                return FailureType.FILE;
+            }
+        }
+
+        if (details.isAssertionFailure()) {
             return FailureType.ASSERTION;
         } else {
             return FailureType.EXCEPTION;
         }
     }
 
-    private String getUrl(String file) {
-        if (!isEmpty(repository) && !isEmpty(sha)) {
-            return urlBuilder.build(repository, sha, file);
+    private String getUrl(GitLinkTemplate.GitLinkBuilder gitLinkBuilder, String file) {
+        if (repository.isPresent() && commit.isPresent()) {
+            return gitLinkBuilder.build(repository.get(), commit.get(), file);
         }
         return "";
     }
@@ -538,10 +535,10 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
     private static class LineNumberResolver {
 
         private static final JavaParser PARSER = new JavaParser(new ParserConfiguration()
-            .setLanguageLevel(ParserConfiguration.LanguageLevel.RAW));
+                .setLanguageLevel(ParserConfiguration.LanguageLevel.RAW));
 
         public static int getFailureLineNumber(String className, String methodName, String stackTrace,
-            Path sourceFile) {
+                                               Path sourceFile) {
             if (methodName.endsWith("()")) {
                 methodName = methodName.substring(0, methodName.length() - 2);
             }
@@ -617,12 +614,12 @@ public class TestSuiteCollector implements TestListener, TestOutputListener {
             var compilationUnit = PARSER.parse(source).getResult().orElse(null);
             if (null != compilationUnit) {
                 var lines = compilationUnit.findAll(MethodDeclaration.class,
-                        method -> method.getNameAsString().equals(methodName)
-                                  && method.isAnnotationPresent("Test")).stream()
-                    .map(method -> method.getBegin()
-                        .map(p -> p.line)
-                        .orElse(-1))
-                    .toList();
+                                method -> method.getNameAsString().equals(methodName)
+                                        && method.isAnnotationPresent("Test")).stream()
+                        .map(method -> method.getBegin()
+                                .map(p -> p.line)
+                                .orElse(-1))
+                        .toList();
 
                 if (lines.size() == 1) {
                     return lines.get(0);

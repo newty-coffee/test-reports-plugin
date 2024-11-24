@@ -16,12 +16,12 @@
 
 package com.newtco.testlib.gradle;
 
-import java.io.File;
-import java.util.Set;
-import javax.annotation.Nonnull;
-
 import org.gradle.api.file.SourceDirectorySet;
 import org.mockito.Mockito;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.util.Set;
 
 import static com.newtco.testlib.gradle.MockUtil.asPath;
 

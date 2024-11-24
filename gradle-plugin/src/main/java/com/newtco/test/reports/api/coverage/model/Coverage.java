@@ -52,41 +52,13 @@ public abstract class Coverage<T extends ICoverageNode> {
         return counters;
     }
 
-    public class Counters {
-
-        public Counter getInstructions() {
-            return new Counter(coverage.getInstructionCounter());
-        }
-
-        public Counter getBranches() {
-            return new Counter(coverage.getBranchCounter());
-        }
-
-        public Counter getLines() {
-            return new Counter(coverage.getLineCounter());
-        }
-
-        public Counter getComplexity() {
-            return new Counter(coverage.getComplexityCounter());
-        }
-
-        public Counter getMethods() {
-            return new Counter(coverage.getMethodCounter());
-        }
-
-        public Counter getClasses() {
-            return new Counter(coverage.getClassCounter());
-        }
-
-    }
-
     /**
      * The Counter class provides an abstraction over the ICounter interface, offering additional functionality and
      * textual representations of different coverage states.
      */
     public static class Counter {
         private static final String[] StatusText = new String[]{
-            "EMPTY", "NOT_COVERED", "FULLY_COVERED", "PARTLY_COVERED",
+                "EMPTY", "NOT_COVERED", "FULLY_COVERED", "PARTLY_COVERED",
         };
         private final        ICounter counter;
 
@@ -123,8 +95,8 @@ public abstract class Coverage<T extends ICoverageNode> {
         public String getStatusText() {
             int status = counter.getStatus();
             return status > 0 && status < StatusText.length
-                   ? StatusText[status]
-                   : "UNKNOWN";
+                    ? StatusText[status]
+                    : "UNKNOWN";
         }
 
         /**
@@ -162,5 +134,33 @@ public abstract class Coverage<T extends ICoverageNode> {
             }
             return percentage;
         }
+    }
+
+    public class Counters {
+
+        public Counter getInstructions() {
+            return new Counter(coverage.getInstructionCounter());
+        }
+
+        public Counter getBranches() {
+            return new Counter(coverage.getBranchCounter());
+        }
+
+        public Counter getLines() {
+            return new Counter(coverage.getLineCounter());
+        }
+
+        public Counter getComplexity() {
+            return new Counter(coverage.getComplexityCounter());
+        }
+
+        public Counter getMethods() {
+            return new Counter(coverage.getMethodCounter());
+        }
+
+        public Counter getClasses() {
+            return new Counter(coverage.getClassCounter());
+        }
+
     }
 }

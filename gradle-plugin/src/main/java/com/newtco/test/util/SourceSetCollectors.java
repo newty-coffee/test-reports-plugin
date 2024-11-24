@@ -16,81 +16,22 @@
 
 package com.newtco.test.util;
 
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.tasks.SourceSet;
+
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collector.Characteristics;
 
-import org.gradle.api.Project;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.testing.Test;
-
 /**
  * A utility class for constructing Stream Collectors that accumulate elements from a {@code SourceSet} based on
  * specified filters and mappers.
  */
 public class SourceSetCollectors {
-    /**
-     * Represents a filter for source files, providing methods for combining filters using logical AND, OR operations.
-     * This functional interface facilitates filtering based on both class name and file parameters.
-     */
-    @FunctionalInterface
-    public interface SourceFileTreeFilter {
-        boolean test(String className, FileTreeElement element);
-
-        default SourceFileTreeFilter and(SourceFileTreeFilter other) {
-            return (className, element) -> test(className, element) && other.test(className, element);
-        }
-
-        default SourceFileTreeFilter or(SourceFileTreeFilter other) {
-            return (className, element) -> test(className, element) || other.test(className, element);
-        }
-    }
-
-    /**
-     * Defines a filter interface for source files, providing methods to evaluate files based on their class name and
-     * file object. It also provides default methods for combining filters using logical AND, OR operations.
-     */
-    public interface SourceFileFilter extends SourceFileTreeFilter {
-        boolean test(String className, File file);
-
-        default boolean test(String className, FileTreeElement element) {
-            return test(className, element.getFile());
-        }
-
-        default SourceFileFilter and(SourceFileFilter other) {
-            return (className, file) -> test(className, file) && other.test(className, file);
-        }
-
-        default SourceFileFilter or(SourceFileFilter other) {
-            return (className, file) -> test(className, file) || other.test(className, file);
-        }
-    }
-
-    /**
-     * A functional interface extending SourceFileFilter to provide a filter mechanism specifically targeting class
-     * names. This interface abstracts the need to handle file objects directly, focusing instead on filtering by class
-     * name.
-     */
-    @FunctionalInterface
-    public interface SourceClassNameFilter extends SourceFileFilter {
-        boolean test(String className);
-
-        default boolean test(String className, File file) {
-            return test(className);
-        }
-    }
-
     /**
      * A method that processes source sets by filtering and mapping their elements, and then applying a finishing
      * function to produce the final result.
@@ -101,17 +42,16 @@ public class SourceSetCollectors {
      * @param finisher   the function to produce the final result from the accumulated elements
      * @param <R>        the type of the mapped result
      * @param <U>        the type of the final result
-     *
      * @return the processed result produced by applying the finisher function to the mapped elements
      */
     public static <R, U> U sourcesMatching(
-        Collection<SourceSet> sourceSets,
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper,
-        Function<Map<R, String>, U> finisher
+            Collection<SourceSet> sourceSets,
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper,
+            Function<Map<R, String>, U> finisher
     ) {
         return sourceSets.stream()
-            .collect(sourcesMatching(filter, mapper, finisher));
+                .collect(sourcesMatching(filter, mapper, finisher));
     }
 
     /**
@@ -119,15 +59,14 @@ public class SourceSetCollectors {
      *
      * @param sourceSets the collection of source sets to be processed
      * @param filter     the filter criteria determining which files are included
-     *
      * @return a set of files that match the filter criteria
      */
     public static Set<File> sourceFilesMatching(
-        Collection<SourceSet> sourceSets,
-        SourceFileTreeFilter filter
+            Collection<SourceSet> sourceSets,
+            SourceFileTreeFilter filter
     ) {
         return sourceSets.stream()
-            .collect(sourceFilesMatching(filter));
+                .collect(sourceFilesMatching(filter));
     }
 
     /**
@@ -142,21 +81,20 @@ public class SourceSetCollectors {
      *                 results.
      * @param <R>      The mapped type of the values in the accumulating {@code Map}.
      * @param <U>      The final result type of the {@code Collector}.
-     *
      * @return A {@code Collector} that accumulates source set elements into a {@code Map<R, String>} and then applies
      * the specified finishing transformation to produce the final result of type {@code U}.
      */
     public static <R, U> Collector<SourceSet, Map<R, String>, U> sourcesMatching(
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper,
-        Function<Map<R, String>, U> finisher
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper,
+            Function<Map<R, String>, U> finisher
     ) {
         return Collector.of(
-            HashMap::new,
-            makeSourcesAccumulator(filter, mapper),
-            SourceSetCollectors::sourcesCombiner,
-            finisher,
-            Characteristics.UNORDERED);
+                HashMap::new,
+                makeSourcesAccumulator(filter, mapper),
+                SourceSetCollectors::sourcesCombiner,
+                finisher,
+                Characteristics.UNORDERED);
     }
 
     /**
@@ -168,17 +106,16 @@ public class SourceSetCollectors {
      * @param mapper A {@code BiFunction} that maps the filtered elements to desired values. It receives a qualified
      *               class name and a {@code FileTreeElement}.
      * @param <R>    The mapped type of the values in the accumulating {@code Map}.
-     *
      * @return A {@code Collector} that accumulates source set elements into a {@code Map<R, String>}.
      */
     public static <R> Collector<SourceSet, Map<R, String>, Map<R, String>> sourcesMatching(
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper
     ) {
         return sourcesMatching(
-            filter,
-            mapper,
-            Function.identity()
+                filter,
+                mapper,
+                Function.identity()
         );
     }
 
@@ -188,16 +125,15 @@ public class SourceSetCollectors {
      *
      * @param filter A {@code BiPredicate} that tests each file in the {@code SourceSet} for inclusion. It receives a
      *               qualified class name and a {@code File} object.
-     *
      * @return A {@code Collector} that accumulates matching files from the {@code SourceSet} into a {@code Set<File>}.
      */
     public static Collector<SourceSet, Map<File, String>, Set<File>> sourceFilesMatching(
-        SourceFileTreeFilter filter
+            SourceFileTreeFilter filter
     ) {
         return sourcesMatching(
-            filter,
-            SourceSetCollectors::fileMapper,
-            Map::keySet
+                filter,
+                SourceSetCollectors::fileMapper,
+                Map::keySet
         );
     }
 
@@ -211,18 +147,17 @@ public class SourceSetCollectors {
      * @param mapper A {@code BiFunction} that maps the filtered elements to desired values. It receives a qualified
      *               class name and a {@code FileTreeElement}.
      * @param <R>    The mapped type of the values in the accumulating {@code Map}.
-     *
      * @return A {@code Collector} that accumulates source set elements into a {@code Map<R, String>} and then applies
      * an inverting finisher to produce a {@code Map<String, R>} of class names to {@code R}.
      */
     public static <R> Collector<SourceSet, Map<R, String>, Map<String, R>> sourceClassesMatching(
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper
     ) {
         return sourcesMatching(
-            filter,
-            mapper,
-            SourceSetCollectors::mapInverter);
+                filter,
+                mapper,
+                SourceSetCollectors::mapInverter);
     }
 
     /**
@@ -233,17 +168,16 @@ public class SourceSetCollectors {
      * @param filter     the filter used to select the classes of interest
      * @param mapper     a function that takes a class name and a file tree element, and returns a mapped result
      * @param finisher   a function that takes a map of class names to mapped results and returns a finished result
-     *
      * @return the finished result, as produced by the finisher function
      */
     public static <R, U> U classesMatching(
-        Collection<SourceSet> sourceSets,
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper,
-        Function<Map<String, Set<R>>, U> finisher
+            Collection<SourceSet> sourceSets,
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper,
+            Function<Map<String, Set<R>>, U> finisher
     ) {
         return sourceSets.stream()
-            .collect(classesMatching(filter, mapper, finisher));
+                .collect(classesMatching(filter, mapper, finisher));
     }
 
     /**
@@ -252,15 +186,14 @@ public class SourceSetCollectors {
      * @param sourceSets A collection of SourceSet objects representing the source sets to be searched.
      * @param filter     A filter to apply on the source files to determine which files should be included as class
      *                   files.
-     *
      * @return A set of Files representing the class files that match the provided filter.
      */
     public static Set<File> classFilesMatching(
-        Collection<SourceSet> sourceSets,
-        SourceFileTreeFilter filter
+            Collection<SourceSet> sourceSets,
+            SourceFileTreeFilter filter
     ) {
         return sourceSets.stream()
-            .collect(classFilesMatching(filter));
+                .collect(classFilesMatching(filter));
     }
 
     /**
@@ -271,16 +204,16 @@ public class SourceSetCollectors {
      *               the matching class file in the collected output.
      */
     public static <R, U> Collector<SourceSet, Map<String, Set<R>>, U> classesMatching(
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper,
-        Function<Map<String, Set<R>>, U> finisher
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper,
+            Function<Map<String, Set<R>>, U> finisher
     ) {
         return Collector.of(
-            HashMap::new,
-            makeClassesAccumulator(filter, mapper),
-            SourceSetCollectors::classesCombiner,
-            finisher,
-            Characteristics.UNORDERED
+                HashMap::new,
+                makeClassesAccumulator(filter, mapper),
+                SourceSetCollectors::classesCombiner,
+                finisher,
+                Characteristics.UNORDERED
         );
     }
 
@@ -290,17 +223,16 @@ public class SourceSetCollectors {
      *
      * @param filter A {@code BiPredicate} that tests each class file in the {@code SourceSet} for inclusion. It
      *               receives a qualified class name and a {@code FileTreeElement}.
-     *
      * @return A {@code Collector} that accumulates the matching class files from the {@code SourceSet} into a
      * {@code Set<File>}.
      */
     public static Collector<SourceSet, Map<String, Set<File>>, Set<File>> classFilesMatching(
-        SourceFileTreeFilter filter
+            SourceFileTreeFilter filter
     ) {
         return classesMatching(
-            filter,
-            SourceSetCollectors::fileMapper,
-            SourceSetCollectors::valuesMerger);
+                filter,
+                SourceSetCollectors::fileMapper,
+                SourceSetCollectors::valuesMerger);
     }
 
     /**
@@ -317,17 +249,17 @@ public class SourceSetCollectors {
      *                  {@link FileTreeElement} to a result of type {@code R}.
      */
     private static <R> void accumulateClasses(
-        SourceSet sourceSet,
-        BiConsumer<String, R> consumer,
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper
+            SourceSet sourceSet,
+            BiConsumer<String, R> consumer,
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper
     ) {
         var classNames = new HashSet<String>();
         accumulateSources(
-            sourceSet,
-            makeClassNameConsumer(classNames),
-            filter,
-            SourceSetCollectors::classNameMapper);
+                sourceSet,
+                makeClassNameConsumer(classNames),
+                filter,
+                SourceSetCollectors::classNameMapper);
         if (classNames.isEmpty()) {
             return;
         }
@@ -360,10 +292,10 @@ public class SourceSetCollectors {
      *                  {@code FileTreeElement} to a result of type {@code R}.
      */
     private static <R> void accumulateSources(
-        SourceSet sourceSet,
-        BiConsumer<R, String> consumer,
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper
+            SourceSet sourceSet,
+            BiConsumer<R, String> consumer,
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper
     ) {
         sourceSet.getAllJava().getAsFileTree().visit(details -> {
             if (!details.isDirectory()) {
@@ -395,11 +327,11 @@ public class SourceSetCollectors {
     }
 
     private static <R> BiConsumer<Map<String, Set<R>>, SourceSet> makeClassesAccumulator(
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper
     ) {
         return (Map<String, Set<R>> outputs, SourceSet sourceSet) -> accumulateClasses(sourceSet,
-            makeMapPutAndAddConsumer(outputs), filter, mapper);
+                makeMapPutAndAddConsumer(outputs), filter, mapper);
     }
 
     private static <T, R> BiConsumer<T, R> makeMapPutAndAddConsumer(Map<T, Set<R>> map) {
@@ -407,11 +339,11 @@ public class SourceSetCollectors {
     }
 
     private static <R> BiConsumer<Map<R, String>, SourceSet> makeSourcesAccumulator(
-        SourceFileTreeFilter filter,
-        BiFunction<String, FileTreeElement, R> mapper
+            SourceFileTreeFilter filter,
+            BiFunction<String, FileTreeElement, R> mapper
     ) {
         return (Map<R, String> outputs, SourceSet sourceSet) -> accumulateSources(sourceSet, outputs::put, filter,
-            mapper);
+                mapper);
     }
 
     private static <K, V> Set<V> newSet(K unused) {
@@ -464,10 +396,61 @@ public class SourceSetCollectors {
             R previous = inverted.put(entry.getValue(), entry.getKey());
             if (previous != null) {
                 throw new IllegalStateException("Duplicate key %s (attempted merging values %s and %s)".formatted(
-                    entry.getValue(), previous, entry.getKey()));
+                        entry.getValue(), previous, entry.getKey()));
             }
         }
         return inverted;
+    }
+
+    /**
+     * Represents a filter for source files, providing methods for combining filters using logical AND, OR operations.
+     * This functional interface facilitates filtering based on both class name and file parameters.
+     */
+    @FunctionalInterface
+    public interface SourceFileTreeFilter {
+        boolean test(String className, FileTreeElement element);
+
+        default SourceFileTreeFilter and(SourceFileTreeFilter other) {
+            return (className, element) -> test(className, element) && other.test(className, element);
+        }
+
+        default SourceFileTreeFilter or(SourceFileTreeFilter other) {
+            return (className, element) -> test(className, element) || other.test(className, element);
+        }
+    }
+
+    /**
+     * Defines a filter interface for source files, providing methods to evaluate files based on their class name and
+     * file object. It also provides default methods for combining filters using logical AND, OR operations.
+     */
+    public interface SourceFileFilter extends SourceFileTreeFilter {
+        boolean test(String className, File file);
+
+        default boolean test(String className, FileTreeElement element) {
+            return test(className, element.getFile());
+        }
+
+        default SourceFileFilter and(SourceFileFilter other) {
+            return (className, file) -> test(className, file) && other.test(className, file);
+        }
+
+        default SourceFileFilter or(SourceFileFilter other) {
+            return (className, file) -> test(className, file) || other.test(className, file);
+        }
+    }
+
+    /**
+     * A functional interface extending SourceFileFilter to provide a filter mechanism specifically targeting class
+     * names. This interface abstracts the need to handle file objects directly, focusing instead on filtering by class
+     * name.
+     */
+    @FunctionalInterface
+    public interface SourceClassNameFilter extends SourceFileFilter {
+        boolean test(String className);
+
+        default boolean test(String className, File file) {
+            return test(className);
+        }
     }
 }
 

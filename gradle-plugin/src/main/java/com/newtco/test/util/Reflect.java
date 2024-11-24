@@ -16,12 +16,12 @@
 
 package com.newtco.test.util;
 
+import org.gradle.api.reflect.ObjectInstantiationException;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.gradle.api.reflect.ObjectInstantiationException;
 
 /**
  * Utility class for performing operations related to object instantiation and reflection.
@@ -35,9 +35,7 @@ public class Reflect {
      * @param <T>        the type of the object to be created
      * @param clazz      the Class object representing the class to be instantiated
      * @param parameters the parameters to be passed to the constructor
-     *
      * @return an instance of the specified class
-     *
      * @throws ObjectInstantiationException if the instance creation fails due to an underlying issue
      */
     public static <T> T newInstance(Class<? extends T> clazz, Object... parameters) throws ObjectInstantiationException {
@@ -59,9 +57,7 @@ public class Reflect {
      * @param <T>         the type of the object to be created
      * @param constructor the Class constructor
      * @param parameters  the parameters to be passed to the constructor
-     *
      * @return an instance of the specified class
-     *
      * @throws ObjectInstantiationException if the instance creation fails due to an underlying issue
      */
     public static <T> T newInstance(Constructor<? extends T> constructor, Object... parameters) throws ObjectInstantiationException {
@@ -83,22 +79,14 @@ public class Reflect {
      * @param <T>        the type of the class for which the constructor is to be retrieved
      * @param clazz      the Class object representing the class whose constructor is to be retrieved
      * @param parameters the parameters to be passed to the constructor
-     *
      * @return the Constructor object of the class matching the specified parameter types
-     *
      * @throws NoSuchMethodException if a matching constructor is not found
      */
     @SuppressWarnings("unchecked")
     public static <T> Constructor<? extends T> getConstructor(Class<? extends T> clazz, Object... parameters) throws NoSuchMethodException {
 
         // Populate parameterTypes with classes of parameters
-        Class<?>[] parameterTypes = new Class<?>[parameters.length];
-        for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i] == null) {
-                throw new IllegalArgumentException("Parameter at index " + i + " is null. Null values are not supported.");
-            }
-            parameterTypes[i] = parameters[i].getClass();
-        }
+        Class<?>[] parameterTypes = getParameterTypes(parameters);
 
         try {
             // Try to find the constructor exactly matching the parameter types
@@ -113,7 +101,7 @@ public class Reflect {
             if (constructorParameterTypes.length == parameters.length) {
                 boolean isCompatible = true;
                 for (int i = 0; i < parameters.length; i++) {
-                    if (!isCompatibleType(constructorParameterTypes[i], parameterTypes[i])) {
+                    if (!isCompatibleType(constructorParameterTypes[i], parameterTypes[i], parameters[i])) {
                         isCompatible = false;
                         break;
                     }
@@ -126,8 +114,52 @@ public class Reflect {
 
         // If no compatible constructor is found, throw an exception
         throw new NoSuchMethodException(Stream.of(parameterTypes)
-            .map(Class::getName)
-            .collect(Collectors.joining(",", clazz.getName() + "<init>.(", ")")));
+                .map(Class::getName)
+                .collect(Collectors.joining(",", clazz.getName() + "<init>.(", ")")));
+    }
+
+    private static Class<?>[] getParameterTypes(Object[] parameters) {
+        Class<?>[] parameterTypes = new Class<?>[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i] == null) {
+                parameterTypes[i] = Object.class; // Using Object.class to represent null value
+            } else {
+                parameterTypes[i] = parameters[i].getClass();
+            }
+        }
+        return parameterTypes;
+    }
+
+    /**
+     * Invokes a method on a given instance using reflection.
+     *
+     * @param <T>          the return type of the method
+     * @param instance     the object instance on which to invoke the method
+     * @param propertyName the name of the method to invoke
+     * @param parameters   the parameters to pass to the method
+     * @return the result of the method invocation, cast to type T
+     * @throws RuntimeException if the method cannot be invoked due to access issues, invocation issues, or if the method does not exist
+     */
+    public static <T> T invokeMethod(Object instance, String propertyName, Object... parameters) {
+        try {
+            var method = instance.getClass().getMethod(propertyName, getParameterTypes(parameters));
+            @SuppressWarnings("unchecked")
+            var value = (T) method.invoke(instance, parameters);
+
+            if (!value.getClass().isAssignableFrom(method.getReturnType())) {
+                throw new ClassCastException("Return type mismatch: expected type does not match the actual method return type");
+            }
+
+            return value;
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Method not found: " + propertyName, e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not access method: " + propertyName, e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException("Method threw an exception: " + propertyName, e.getCause());
+        } catch (ClassCastException e) {
+            throw new RuntimeException("Failed to cast the result to the specified type", e);
+        }
     }
 
     /**
@@ -135,12 +167,12 @@ public class Reflect {
      *
      * @param constructorParameterType the type of the parameter
      * @param parameterType            the argument type to check
-     *
+     * @param parameter                the parameter value
      * @return true if the argument is compatible with the parameter type, false otherwise
      */
-    private static boolean isCompatibleType(Class<?> constructorParameterType, Class<?> parameterType) {
-        // Direct comparison for exact match and primitive types
-        if (constructorParameterType.isAssignableFrom(parameterType)) {
+    private static boolean isCompatibleType(Class<?> constructorParameterType, Class<?> parameterType, Object parameter) {
+        // Direct comparison for exact match and primitive types, and nullable types
+        if (constructorParameterType.isAssignableFrom(parameterType) || parameter == null && !constructorParameterType.isPrimitive()) {
             return true;
         }
 
@@ -156,7 +188,6 @@ public class Reflect {
      * Returns the wrapper type corresponding to the given primitive type.
      *
      * @param type the primitive type
-     *
      * @return the corresponding wrapper type
      */
     private static Class<?> getWrapperType(Class<?> type) {
@@ -175,7 +206,6 @@ public class Reflect {
      * Returns the primitive type corresponding to the given wrapper type.
      *
      * @param type the wrapper type
-     *
      * @return the corresponding primitive type, or null if the type is not a wrapper type
      */
     private static Class<?> getPrimitiveType(Class<?> type) {

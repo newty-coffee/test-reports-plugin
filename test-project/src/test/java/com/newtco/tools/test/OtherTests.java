@@ -16,6 +16,7 @@
 
 package com.newtco.tools.test;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,5 +38,13 @@ public class OtherTests {
         int a = 5;
         int b = 10;
         assertEquals(15, a + b, "5 + 10 should equal 15");
+    }
+
+    @Test
+    @Disabled
+    void shouldDivideTwoNumbers() {
+        int a = 10;
+        int b = 5;
+        assertEquals(2, a / b, "10 / 5 should equal 2");
     }
 }

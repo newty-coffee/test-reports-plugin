@@ -16,26 +16,22 @@
 
 package com.newtco.test.reports.plugin.coverage;
 
-import javax.inject.Inject;
-
+import com.newtco.test.util.Gradle;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
+import org.gradle.util.Configurable;
 
-import com.newtco.test.util.Gradle;
+import javax.inject.Inject;
 
 /**
  * Extension class for this plugin to hold configurable properties for additional Jacoco reports
  */
-public abstract class CoverageReportExtension {
+public class CoverageReportsExtension implements Configurable<CoverageReportsExtension> {
 
     private final Property<String>       gitBaseRef;
     private final PatternSet             changeSet;
@@ -44,28 +40,27 @@ public abstract class CoverageReportExtension {
     private final MarkdownReportSettings detailedMarkdown;
 
     @Inject
-    @SuppressWarnings("squid:S5993") // Gradle requires public here
-    public CoverageReportExtension(Project project, JacocoReport report) {
+    public CoverageReportsExtension(Project project, JacocoReport report) {
         var objects = project.getObjects();
 
         this.gitBaseRef = objects.property(String.class).convention(Gradle.findProperty(project,
-            "GITHUB_BASE_REF", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"));
+                "GITHUB_BASE_REF", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"));
         this.changeSet  = new PatternSet();
 
         // Use the xml report's file location to determine where to store ours
         var reportsDir = objects.directoryProperty().fileValue(
-            report.getReports().getXml().getOutputLocation().getAsFile().get().getParentFile()
+                report.getReports().getXml().getOutputLocation().getAsFile().get().getParentFile()
         );
 
         json = objects.newInstance(JsonReportSettings.class,
-            reportsDir.file(report.getName() + ".json"));
+                reportsDir.file(report.getName() + ".json"));
 
         summaryMarkdown  = objects.newInstance(MarkdownReportSettings.class,
-            "Summary",
-            reportsDir.file(report.getName() + "Summary.md"));
+                "Summary",
+                reportsDir.file(report.getName() + "Summary.md"));
         detailedMarkdown = objects.newInstance(MarkdownReportSettings.class,
-            "Detailed",
-            reportsDir.file(report.getName() + ".md"));
+                "Detailed",
+                reportsDir.file(report.getName() + ".md"));
     }
 
     /**
@@ -140,6 +135,25 @@ public abstract class CoverageReportExtension {
      */
     public void detailedMarkdown(Action<? super MarkdownReportSettings> action) {
         action.execute(getDetailedMarkdown());
+    }
+
+    /**
+     * To work around extensions.configure not using the extension as the delegate
+     */
+    public CoverageReportsExtension configure(Action<? super CoverageReportsExtension> action) {
+        action.execute(this);
+        return this;
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public CoverageReportsExtension configure(Closure closure) {
+        return configure(
+                extension -> {
+                    closure.setDelegate(extension);
+                    closure.call(extension);
+                }
+        );
     }
 }
 

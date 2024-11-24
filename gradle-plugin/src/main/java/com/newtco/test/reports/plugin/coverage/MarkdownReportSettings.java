@@ -16,10 +16,7 @@
 
 package com.newtco.test.reports.plugin.coverage;
 
-import java.util.Map;
-import java.util.Objects;
-import javax.inject.Inject;
-
+import com.newtco.test.reports.api.coverage.Badge;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
@@ -27,7 +24,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 
-import com.newtco.test.reports.api.coverage.Badge;
+import javax.inject.Inject;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Settings specific to generating Markdown reports. It extends the general report settings provided by the
@@ -48,6 +47,38 @@ public abstract class MarkdownReportSettings extends ReportSettings {
     }
 
     /**
+     * Built in color schemes for coverage reports
+     */
+    static Map<String, Badge.ColorScheme> getColorSchemes() {
+        return Map.of(
+                DEFAULT_COLOR_SCHEME,
+                new Badge.ColorScheme(DEFAULT_COLOR_SCHEME,
+                        Badge.ColorScheme.Color.of(100.0f, "4caf50"),
+                        Badge.ColorScheme.Color.of(80.0f, "88bc4b"),
+                        Badge.ColorScheme.Color.of(60.0f, "ffeb3b"),
+                        Badge.ColorScheme.Color.of(50.0f, "ce5226"),
+                        Badge.ColorScheme.Color.of(0.0f, "9b0000")
+                ),
+                "monochrome",
+                new Badge.ColorScheme(DEFAULT_COLOR_SCHEME,
+                        Badge.ColorScheme.Color.of(100.0f, "212121"),
+                        Badge.ColorScheme.Color.of(80.0f, "616161"),
+                        Badge.ColorScheme.Color.of(60.0f, "9e9e9e"),
+                        Badge.ColorScheme.Color.of(50.0f, "bdbdbd"),
+                        Badge.ColorScheme.Color.of(0.0f, "e0e0e0")
+                ),
+                "blue-red",
+                new Badge.ColorScheme(DEFAULT_COLOR_SCHEME,
+                        Badge.ColorScheme.Color.of(100.0f, "0d47a1"),
+                        Badge.ColorScheme.Color.of(80.0f, "1976d2"),
+                        Badge.ColorScheme.Color.of(60.0f, "1e88e5"),
+                        Badge.ColorScheme.Color.of(50.0f, "d32f2f"),
+                        Badge.ColorScheme.Color.of(0.0f, "c62828")
+                )
+        );
+    }
+
+    /**
      * Determines whether package names are abbreviated in the generated Markdown report.
      *
      * @return a Property representing whether package names should be abbreviated.
@@ -59,7 +90,6 @@ public abstract class MarkdownReportSettings extends ReportSettings {
      * Retrieves the style of the badge to be used in the Markdown report.
      *
      * @return a Property representing the badge style.
-     *
      * @see https://shields.io
      */
     @Input
@@ -81,7 +111,6 @@ public abstract class MarkdownReportSettings extends ReportSettings {
      * does not exist in the available schemes, an exception is thrown.
      *
      * @return the ColorScheme associated with the current color scheme name.
-     *
      * @throws GradleException if the color scheme name is not found in the available color schemes.
      */
     @Internal
@@ -91,42 +120,10 @@ public abstract class MarkdownReportSettings extends ReportSettings {
 
         if (!schemes.containsKey(name)) {
             throw new GradleException("Scheme name '%s' not found. Must be one of: %s".formatted(
-                Objects.toString(name),
-                String.join(", ", schemes.keySet())));
+                    name,
+                    String.join(", ", schemes.keySet())));
         }
 
         return schemes.get(name);
-    }
-
-    /**
-     * Built in color schemes for coverage reports
-     */
-    static Map<String, Badge.ColorScheme> getColorSchemes() {
-        return Map.of(
-            DEFAULT_COLOR_SCHEME,
-            new Badge.ColorScheme(DEFAULT_COLOR_SCHEME,
-                Badge.ColorScheme.Color.of(100.0f, "4caf50"),
-                Badge.ColorScheme.Color.of(80.0f, "88bc4b"),
-                Badge.ColorScheme.Color.of(60.0f, "ffeb3b"),
-                Badge.ColorScheme.Color.of(50.0f, "ce5226"),
-                Badge.ColorScheme.Color.of(0.0f, "9b0000")
-            ),
-            "monochrome",
-            new Badge.ColorScheme(DEFAULT_COLOR_SCHEME,
-                Badge.ColorScheme.Color.of(100.0f, "212121"),
-                Badge.ColorScheme.Color.of(80.0f, "616161"),
-                Badge.ColorScheme.Color.of(60.0f, "9e9e9e"),
-                Badge.ColorScheme.Color.of(50.0f, "bdbdbd"),
-                Badge.ColorScheme.Color.of(0.0f, "e0e0e0")
-            ),
-            "blue-red",
-            new Badge.ColorScheme(DEFAULT_COLOR_SCHEME,
-                Badge.ColorScheme.Color.of(100.0f, "0d47a1"),
-                Badge.ColorScheme.Color.of(80.0f, "1976d2"),
-                Badge.ColorScheme.Color.of(60.0f, "1e88e5"),
-                Badge.ColorScheme.Color.of(50.0f, "d32f2f"),
-                Badge.ColorScheme.Color.of(0.0f, "c62828")
-            )
-        );
     }
 }

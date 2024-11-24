@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.newtco.test.reports.plugin;
+package com.newtco.test.reports.plugin.transform;
 
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
@@ -27,7 +27,7 @@ public interface PluginJarType extends Named {
      * The attribute that represents type of plugin jar file
      */
     Attribute<String> PLUGIN_JAR_TYPE_ATTRIBUTE = Attribute.of(PluginJarType.class.getName(),
-        String.class);
+            String.class);
 
     /**
      * Represents the full plugin JAR file.

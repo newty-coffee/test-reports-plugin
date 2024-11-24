@@ -16,6 +16,9 @@
 
 package com.newtco.test.util;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Serial;
@@ -26,16 +29,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.processing.Generated;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import java.util.*;
 
 import static com.newtco.test.util.CodeGen.Signature;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -244,7 +238,7 @@ public class SignatureTest {
         assertEquals(expectedSignature, signature.getSignature());
 
         List<String> expectedImports = List.of(
-            A.PA.class.getCanonicalName()
+                A.PA.class.getCanonicalName()
         );
         assertEquals(expectedImports, signature.getImports());
 
@@ -262,7 +256,7 @@ public class SignatureTest {
         assertEquals(expectedSignature, signature.getSignature());
 
         List<String> expectedImports = List.of(
-            A.CustomException.class.getCanonicalName()
+                A.CustomException.class.getCanonicalName()
         );
         assertEquals(expectedImports, signature.getImports());
 
@@ -312,7 +306,7 @@ public class SignatureTest {
         assertEquals(expectedSignature, signature.getSignature());
 
         List<String> expectedImports = List.of(
-            A.CustomEnum.class.getCanonicalName()
+                A.CustomEnum.class.getCanonicalName()
         );
         assertEquals(expectedImports, signature.getImports());
 
@@ -362,7 +356,7 @@ public class SignatureTest {
         assertEquals(expectedSignature, signature.getSignature());
 
         List<String> expectedImports = List.of(
-            A.TA.class.getCanonicalName()
+                A.TA.class.getCanonicalName()
         );
         assertEquals(expectedImports, signature.getImports());
 
@@ -401,6 +395,16 @@ public class SignatureTest {
         public <E extends A<T> & Serializable> A(E instance) {
         }
 
+        // Varargs Constructor with Generic Type
+        @SafeVarargs
+        public A(T... values) {
+        }
+
+        // Static Method with Type Parameter
+        public static <S> S staticGenericMethod(S param) {
+            return param;
+        }
+
         // Method with No Parameters
         public void simpleMethod() {
         }
@@ -424,11 +428,6 @@ public class SignatureTest {
         public <K, V extends Collection<K>> void complexMethod(V collection) throws IOException, NullPointerException {
         }
 
-        // Static Method with Type Parameter
-        public static <S> S staticGenericMethod(S param) {
-            return param;
-        }
-
         // Private Method with Bounded Wildcard
         private List<? super Number> privateMethod(List<? extends Number> numbers) {
             return new ArrayList<>();
@@ -438,19 +437,8 @@ public class SignatureTest {
         public void methodWithAnnotations(@PA String param) {
         }
 
-        // Nested Class with Generic Type
-        public static class NestedClass<N extends Serializable> {
-            public void nestedMethod(N param) {
-            }
-        }
-
         // Method Throwing Custom Exception
         public void methodThrowingException() throws CustomException {
-        }
-
-        // Varargs Constructor with Generic Type
-        @SafeVarargs
-        public A(T... values) {
         }
 
         // Method with Generic Array Return Type
@@ -479,10 +467,17 @@ public class SignatureTest {
         public void methodWithEnum(CustomEnum customEnum) {
         }
 
-
         // Method with Annotated Return Type
         public @TA String methodWithAnnotatedReturnType() {
             return "Non-null value";
+        }
+
+        // Method with Recursive Generic Type Parameter
+        public <R extends Comparable<R> & Serializable> void recursiveGenericMethod(R param) {
+        }
+
+        // Method with Generic Bounded by Multiple Interfaces
+        public <M extends Runnable & Closeable> void multiBoundMethod(M param) {
         }
 
         // Enum Definition
@@ -495,25 +490,23 @@ public class SignatureTest {
         public @interface PA {
         }
 
+
         // Custom Annotation Definition
         @Target(ElementType.TYPE_USE)
         @Retention(RetentionPolicy.RUNTIME)
         public @interface TA {
         }
 
+        // Nested Class with Generic Type
+        public static class NestedClass<N extends Serializable> {
+            public void nestedMethod(N param) {
+            }
+        }
 
         // Custom Exception Class
         public static class CustomException extends Exception {
             @Serial
             public static final long serialVersionUID = 1L;
-        }
-
-        // Method with Recursive Generic Type Parameter
-        public <R extends Comparable<R> & Serializable> void recursiveGenericMethod(R param) {
-        }
-
-        // Method with Generic Bounded by Multiple Interfaces
-        public <M extends Runnable & Closeable> void multiBoundMethod(M param) {
         }
     }
 

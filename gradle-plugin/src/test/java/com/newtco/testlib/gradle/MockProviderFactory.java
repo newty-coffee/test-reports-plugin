@@ -1,13 +1,13 @@
 package com.newtco.testlib.gradle;
 
+import org.gradle.api.provider.Provider;
+import org.mockito.Mockito;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.gradle.api.provider.Provider;
-import org.mockito.Mockito;
 
 public abstract class MockProviderFactory implements org.gradle.api.provider.ProviderFactory {
     private Map<String, String> gradleProperties;
@@ -64,7 +64,7 @@ public abstract class MockProviderFactory implements org.gradle.api.provider.Pro
     }
 
     private Provider<String> mockProvider(String name, Map<String, String> map) {
-        var mock = MockProvider.<String>create(() -> map.get(name), () -> map.containsKey(name));
+        var mock = MockProvider.create(() -> map.get(name), () -> map.containsKey(name));
         return mock;
     }
 

@@ -16,11 +16,12 @@
 
 package com.newtco.test.reports.api.test;
 
-import java.util.Set;
-
 import com.newtco.test.reports.api.test.model.Status;
 
+import java.util.Set;
+
 public class TestSettings {
+    public boolean     aggregateReport;
     public boolean     includeSystemErrLog;
     public boolean     includeSystemOutLog;
     public boolean     outputPerTestCase;

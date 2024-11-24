@@ -1,23 +1,25 @@
 /*
- * Copyright 2024 newty.coffee
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2024 newty.coffee
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+@file:Suppress("UnstableApiUsage")
 
 plugins {
     id("java")
     id("jacoco")
-    id("groovy") // for tests
+    id("groovy")
+    id("jvm-test-suite")
     id("java-gradle-plugin")
     id("com.gradle.plugin-publish") version "1.2.1"
 }
@@ -31,8 +33,6 @@ repositories {
 }
 
 java {
-    modularity.inferModulePath = true
-
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 
@@ -44,14 +44,41 @@ java {
     withSourcesJar()
 }
 
-sourceSets {
-    test {
-        groovy {
-            srcDirs("src/test/groovy")
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            testType = TestSuiteType.UNIT_TEST
+
+            useJUnitJupiter()
+
+            dependencies {
+                implementation(project())
+                implementation(gradleTestKit())
+                implementation("org.mockito:mockito-core:5.3.0")
+                implementation("com.google.truth:truth:1.4.4")
+            }
+        }
+
+        val testFunc by registering(JvmTestSuite::class) {
+            testType = TestSuiteType.FUNCTIONAL_TEST
+
+            useSpock()
+
+            dependencies {
+                implementation(project())
+                implementation(gradleTestKit())
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(tasks.named("test"))
+                    }
+                }
+            }
         }
     }
 }
-
 
 dependencies {
     gradleApi()
@@ -63,18 +90,8 @@ dependencies {
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
-    testImplementation("org.mockito:mockito-core:5.3.0")
-    // For assertions
-    testImplementation("com.google.truth:truth:1.4.4")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.1")
 
-    // For Spock tests
-    testImplementation("org.spockframework:spock-core:2.2-groovy-3.0") {
-        exclude(group = "org.codehaus.groovy")
-    }
-
-
-    testImplementation(gradleTestKit())
-    testImplementation(localGroovy())
 }
 
 tasks.withType<JavaCompile> {
@@ -98,9 +115,14 @@ tasks.withType<Javadoc> {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
+    ignoreFailures = false
 
-    ignoreFailures = true
+    // Used by PluginIntegrationTest & test-project
+    jvmArgs(
+        "-Dplugin.maven.repo.dir=" + project.rootDir.parentFile.resolve("build/repo").absolutePath,
+        "-Dplugin.build.dir=" + layout.buildDirectory.get().asFile.absolutePath,
+        "-Dplugin.repository.rootDir=" + project.rootDir.parentFile.absolutePath
+    )
 
     testLogging {
         events("passed", "skipped", "failed")
@@ -124,16 +146,6 @@ tasks.withType<JacocoReport> {
         html.required = true
         csv.required = true
     }
-
-    afterEvaluate({
-        classDirectories.setFrom(
-            files(classDirectories.files.map {
-                fileTree(it) {
-                    exclude("**/Test.class")
-                }
-            })
-        )
-    })
 }
 
 gradlePlugin {
@@ -145,10 +157,15 @@ gradlePlugin {
             id = "com.newtco.test.test-reports-plugin"
             implementationClass = "com.newtco.test.reports.plugin.TestReportsPlugin"
             displayName = "Test Reports Plugin"
-            description = "JSON and Markdown reports for JUnit and Jacoco"
-            tags = listOf("test", "reports", "jacoco", "markdown", "json")
+            description = "JSON and Markdown reports for Jacoco and JUnit"
+            tags = listOf("test", "reports", "jacoco", "junit", "markdown", "json")
         }
     }
+
+    testSourceSets(
+        sourceSets.named("test").get(),
+        sourceSets.named("testFunc").get()
+    )
 }
 
 tasks.named("publishPlugins") {
@@ -161,40 +178,126 @@ tasks.withType<Jar> {
     isReproducibleFileOrder = true
 
     manifest {
-        val plugin = gradlePlugin.plugins["testReports"]!!
-
         attributes(
             "Implementation-Title" to "Test Reports Gradle Plugin",
             "Implementation-Version" to archiveVersion,
             "Implementation-Vendor" to "newty.coffee",
         )
+    }
+}
 
-        attributes(
-            "plugins/test-reports-plugin/properties",
-            "plugin-name" to plugin.name,
-            "plugin-id" to plugin.id,
-            "plugin-group" to project.group,
-            "plugin-artifact" to archiveBaseName,
-            "plugin-version" to project.version,
-            "plugin-timestamp" to System.currentTimeMillis(),
+val generatePluginVersion = tasks.register("generatePluginVersion") {
+    val outputFile =
+        layout.buildDirectory.file("generated/sources/plugin-version/com/newtco/test/reports/plugin/PluginVersion.java")
+
+    outputs.file(outputFile)
+
+    doFirst {
+        outputFile.get().asFile.parentFile.mkdirs()
+    }
+
+    doLast {
+        val plugin = gradlePlugin.plugins["testReports"]!!
+
+        // Write the plugin properties to the plugin.properties file
+        outputFile.get().asFile.writeText(
+            """
+            package com.newtco.test.reports.plugin;
+            
+            import java.util.Optional;
+            import java.util.function.Supplier;
+            
+            import org.gradle.util.GradleVersion;
+            
+            public class PluginVersion {
+                public static final String Name                 = "${plugin.name}";
+                public static final String Id                   = "${plugin.id}";
+                public static final String Group                = "${project.group}";
+                public static final String Artifact             = "test-reports-plugin";
+                public static final String Version              = "${project.version}";
+                public static final String Timestamp            = "${System.currentTimeMillis()}";
+                public static final String MinimumGradleVersion = "7.6.4";
+            
+                public static String coordinates() {
+                    return "${project.group}:test-reports-plugin:${project.version}";
+                }
+            
+                public static boolean snapshot() {
+                    return ${project.version.toString().endsWith("-SNAPSHOT")};
+                }
+            
+                public static void checkGradleVersion() {
+                    if (GradleVersion.current().compareTo(GradleVersion.version(MinimumGradleVersion)) < 0) {
+                        throw new UnsupportedOperationException("The test-reports-plugin requires Gradle " + MinimumGradleVersion + " or later");
+                    }
+                }
+                
+                public static boolean isGradleVersionAtLeast(String version) {
+                    return GradleVersion.current().compareTo(GradleVersion.version(version)) >= 0;
+                }
+
+                public static void ifGradleVersionAtLeast(String version, Runnable runnable) {
+                    if (isGradleVersionAtLeast(version)) {
+                        runnable.run();
+                    }
+                }
+                
+                public static <T> Optional<T> ifGradleVersionAtLeast(String version, Supplier<T> supplier) {
+                    if (isGradleVersionAtLeast(version)) {
+                        return Optional.ofNullable(supplier.get());
+                    }
+                    return Optional.empty();
+                }
+            }
+            """.trimIndent()
         )
     }
 }
 
+tasks.named("compileJava").configure {
+    dependsOn(generatePluginVersion)
+}
 
-if (project.version.toString().endsWith("-SNAPSHOT")) {
+tasks.named("sourcesJar").configure {
+    dependsOn(generatePluginVersion)
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs(layout.buildDirectory.dir("generated/sources/plugin-version"))
+        }
+    }
+}
+
+tasks.named("processResources") {
+    dependsOn(tasks.named("generatePluginVersion"))
+}
+
+fun isReleaseRun(): Boolean {
+    return project.hasProperty("release")
+}
+
+if (!isReleaseRun()) {
+    val buildRepoDir = project.rootDir.parentFile.resolve("build/repo").absolutePath
+    println("Publishing plugin to local repo directory $buildRepoDir")
+
     // Shared by the test project for resolving build artifacts, which aren't published to the gradle plugin portal
     publishing {
         repositories {
             maven {
                 name = "build"
-                url = uri("../build/repo")
+                url = uri(buildRepoDir)
             }
         }
     }
 
     tasks.withType<Jar> {
         finalizedBy(tasks.named("publish"))
+    }
+
+    tasks.withType<Test> {
+        dependsOn(tasks.named("publish"))
     }
 }
 
@@ -205,7 +308,7 @@ publishing {
 
             pom {
                 name = "Test Reports Plugin"
-                description = "JSON and Markdown reports for JUnit and Jacoco"
+                description = "JSON and Markdown reports for JaCoCo and JUnit"
                 url = "https://github.com/newty-coffee/test-reports-plugin"
                 inceptionYear = "2023"
                 licenses {

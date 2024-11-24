@@ -19,10 +19,7 @@ package com.newtco.test.util;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the Reflection utility class.
@@ -36,7 +33,7 @@ public class ReflectTest {
     public void testNewInstanceExactMatchWithInteger() {
         Integer value = 42;
         SampleClassWithIntegerConstructor instance = Reflect.newInstance(SampleClassWithIntegerConstructor.class,
-            value);
+                value);
         assertNotNull(instance);
         assertEquals(value, instance.getValue(), "The Integer value should be set correctly.");
     }
@@ -48,12 +45,12 @@ public class ReflectTest {
     public void testNewInstancePrimitiveConstructorWithWrapperParameter() {
         Integer value = 42;
         SampleClassWithIntConstructor instance = Reflect.newInstance(SampleClassWithIntConstructor.class,
-            value);
+                value);
 
         assertNotNull(instance);
         assertEquals(value.intValue(),
-            instance.getValue(),
-            "The int value should be set correctly from Integer parameter.");
+                instance.getValue(),
+                "The int value should be set correctly from Integer parameter.");
     }
 
     /**
@@ -63,11 +60,11 @@ public class ReflectTest {
     public void testNewInstanceWrapperConstructorWithPrimitiveParameter() {
         int value = 42;
         SampleClassWithIntegerConstructor instance = Reflect.newInstance(SampleClassWithIntegerConstructor.class,
-            value);
+                value);
         assertNotNull(instance);
         assertEquals(Integer.valueOf(value),
-            instance.getValue(),
-            "The Integer value should be set correctly from int parameter.");
+                instance.getValue(),
+                "The Integer value should be set correctly from int parameter.");
     }
 
     /**
@@ -79,20 +76,20 @@ public class ReflectTest {
         // Passing Integer value
         Integer integerValue = 42;
         SampleClassWithBothConstructors instance1 = Reflect.newInstance(SampleClassWithBothConstructors.class,
-            integerValue);
+                integerValue);
         assertNotNull(instance1);
         assertEquals("Integer",
-            instance1.getConstructorUsed(),
-            "Should use the Integer constructor when passing Integer.");
+                instance1.getConstructorUsed(),
+                "Should use the Integer constructor when passing Integer.");
 
         // Passing int value
         int intValue = 42;
         SampleClassWithBothConstructors instance2 = Reflect.newInstance(SampleClassWithBothConstructors.class,
-            intValue);
+                intValue);
         assertNotNull(instance2);
         assertEquals("Integer",
-            instance2.getConstructorUsed(),
-            "Should prefer the Integer constructor when both are available.");
+                instance2.getConstructorUsed(),
+                "Should prefer the Integer constructor when both are available.");
     }
 
     /**
@@ -103,8 +100,8 @@ public class ReflectTest {
         Integer intValue    = 42;
         String  stringValue = "Test";
         SampleClassWithMultipleParameters instance = Reflect.newInstance(SampleClassWithMultipleParameters.class,
-            intValue,
-            stringValue);
+                intValue,
+                stringValue);
         assertNotNull(instance);
         assertEquals(42, instance.getIntValue(), "The int value should be set correctly from Integer parameter.");
         assertEquals("Test", instance.getStringValue(), "The String value should be set correctly.");
@@ -120,16 +117,15 @@ public class ReflectTest {
         }, "Should throw ObjectInstantiationException when no matching constructor is found.");
     }
 
+
     /**
-     * Tests that an IllegalArgumentException is thrown when a null parameter is passed.
+     * Tests successful instantiation when a null parameter is passed.
      */
     @Test
     public void testNewInstanceNullParameter() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            Reflect.newInstance(SampleClassWithIntegerConstructor.class, (Object) null);
-        }, "Should throw IllegalArgumentException when null parameter is passed.");
-        assertTrue(exception.getMessage().contains("Null values are not supported"),
-            "Exception message should indicate that null values are not supported.");
+        SampleClassWithIntegerConstructor instance = Reflect.newInstance(SampleClassWithIntegerConstructor.class, (Integer) null);
+        assertNotNull(instance);
+        assertNull(instance.getValue(), "The value should be null when null parameter is passed.");
     }
 
     /**
@@ -149,7 +145,7 @@ public class ReflectTest {
     public void testNewInstanceDoubleConstructorWithWrapperParameter() {
         Double value = 3.14;
         SampleClassWithDoubleConstructor instance = Reflect.newInstance(SampleClassWithDoubleConstructor.class,
-            value);
+                value);
         assertNotNull(instance);
         assertEquals(value, instance.getValue(), "The double value should be set correctly from Double parameter.");
     }
@@ -161,11 +157,11 @@ public class ReflectTest {
     public void testNewInstancePrimitiveDoubleConstructorWithWrapperParameter() {
         Double value = 3.14;
         SampleClassWithDoubleConstructor instance = Reflect.newInstance(SampleClassWithDoubleConstructor.class,
-            value);
+                value);
         assertNotNull(instance);
         assertEquals(value.doubleValue(),
-            instance.getValue(),
-            "The double value should be set correctly from Double parameter.");
+                instance.getValue(),
+                "The double value should be set correctly from Double parameter.");
     }
 
     /**
@@ -175,12 +171,12 @@ public class ReflectTest {
     public void testNewInstanceWrapperDoubleConstructorWithPrimitiveParameter() {
         double value = 3.14;
         SampleClassWithDoubleWrapperConstructor instance = Reflect.newInstance(
-            SampleClassWithDoubleWrapperConstructor.class,
-            value);
+                SampleClassWithDoubleWrapperConstructor.class,
+                value);
         assertNotNull(instance);
         assertEquals(Double.valueOf(value),
-            instance.getValue(),
-            "The Double value should be set correctly from double parameter.");
+                instance.getValue(),
+                "The Double value should be set correctly from double parameter.");
     }
 
     /**

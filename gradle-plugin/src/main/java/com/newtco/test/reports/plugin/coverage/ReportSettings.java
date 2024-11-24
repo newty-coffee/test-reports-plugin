@@ -16,15 +16,15 @@
 
 package com.newtco.test.reports.plugin.coverage;
 
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
-
 import org.gradle.api.Named;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
+
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
 
 /**
  * Defines common properties and methods used across different types of report settings. It provides a base

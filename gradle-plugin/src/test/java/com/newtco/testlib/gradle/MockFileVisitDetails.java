@@ -16,14 +16,14 @@
 
 package com.newtco.testlib.gradle;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Random;
-import javax.annotation.Nonnull;
-
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.mockito.Mockito;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Random;
 
 import static com.newtco.testlib.gradle.MockUtil.asPath;
 
@@ -36,13 +36,13 @@ public abstract class MockFileVisitDetails implements FileVisitDetails {
     private boolean      isDirectory;
     private boolean      stopVisiting;
 
+    protected MockFileVisitDetails() {
+    }
+
     // Mock API
     public static MockFileVisitDetails create(Object parent, Object file, boolean isDirectory) {
         return Mockito.spy(MockFileVisitDetails.class)
-            .init(asPath(parent), asPath(file), isDirectory);
-    }
-
-    protected MockFileVisitDetails() {
+                .init(asPath(parent), asPath(file), isDirectory);
     }
 
     private MockFileVisitDetails init(Path parent, Path file, boolean isDirectory) {
@@ -72,18 +72,18 @@ public abstract class MockFileVisitDetails implements FileVisitDetails {
     public long getLastModified() {
         var file = getFile();
         return file.exists()
-               ? file.lastModified()
-               : System.currentTimeMillis();
+                ? file.lastModified()
+                : System.currentTimeMillis();
     }
 
     @Override
     public long getSize() {
         var file = getFile();
         return file.exists()
-               ? file.length()
-               : isDirectory
-                 ? 0
-                 : new Random().nextLong(1024 * 1024 * 1024);
+                ? file.length()
+                : isDirectory
+                ? 0
+                : new Random().nextLong(1024 * 1024 * 1024);
     }
 
     @Nonnull

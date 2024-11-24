@@ -16,15 +16,15 @@
 
 package com.newtco.test.reports.plugin.coverage;
 
-import javax.inject.Inject;
-
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 
+import javax.inject.Inject;
+
 /**
- * Configuration settings for generating a JSON coverage report. Exposed by {@link CoverageReportExtension#getJson()}
+ * Configuration settings for generating a JSON coverage report. Exposed by {@link CoverageReportsExtension#getJson()}
  */
 public abstract class JsonReportSettings extends ReportSettings {
 

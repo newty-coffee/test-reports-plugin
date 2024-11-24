@@ -75,7 +75,13 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
     }
 
     public T code(String... texts) {
-        return out("````").text(texts).out("````");
+        //return out("````").text(texts).out("````");
+        out("<code>");
+        for (var text : texts) {
+            out(escape(text));
+        }
+        out("</code>");
+        return self();
     }
 
     public T pre(String... texts) {
@@ -96,7 +102,7 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
 
     public T details(String summary, String... contents) {
         out("<details>\n",
-            "<summary>", summary, "</summary>  \n");
+                "<summary>", summary, "</summary>  \n");
         for (var content : contents) {
             out(content);
         }
@@ -118,8 +124,8 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
 
     public T text(String... texts) {
         return texts.length == 1
-               ? out(texts[0])
-               : out((Object[]) texts);
+                ? out(texts[0])
+                : out((Object[]) texts);
     }
 
     public <V> T repeat(Collection<V> values, Consumer<V> processor) {
@@ -162,6 +168,24 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
             }
         }
 
+        return escaped.toString();
+    }
+
+    public String escape(String value, char... chars) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        var escaped = new StringBuilder();
+        for (int i = 0; i < value.length(); i++) {
+            int cp = value.codePointAt((i));
+            for (var ch : chars) {
+                if (cp == ch) {
+                    escaped.append('\\');
+                    break;
+                }
+            }
+            escaped.appendCodePoint(cp);
+        }
         return escaped.toString();
     }
 
@@ -250,10 +274,10 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
 
     public static class Format {
         private static final Map<TimeUnit, String> SUFFIXES = new EnumMap<>(Map.of(
-            TimeUnit.HOURS, "h",
-            TimeUnit.MINUTES, "m",
-            TimeUnit.SECONDS, "s",
-            TimeUnit.MILLISECONDS, "ms"
+                TimeUnit.HOURS, "h",
+                TimeUnit.MINUTES, "m",
+                TimeUnit.SECONDS, "s",
+                TimeUnit.MILLISECONDS, "ms"
         ));
 
         private Format() {
@@ -264,13 +288,12 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
          * zone offset.
          *
          * @param result the timestamp in milliseconds to be converted
-         *
          * @return a formatted string representation of the timestamp
          */
         public static String timestamp(long result) {
             return Instant.ofEpochMilli(result)
-                .atOffset(ZoneOffset.of("Z"))
-                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                    .atOffset(ZoneOffset.of("Z"))
+                    .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         }
 
         /**
@@ -280,7 +303,6 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
          * @param result the timestamp in milliseconds to be converted
          * @param zone   the time zone for formatting the timestamp (e.g., "Z" for UTC, "+02:00" for a specific offset,
          *               or a timezone ID like "America/New_York")
-         *
          * @return a formatted string representation of the timestamp in the specified time zone
          */
         public static String timestamp(long result, String zone) {
@@ -288,10 +310,10 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
 
             if (zone.equals("Z") || zone.startsWith("+") || zone.startsWith("-")) {
                 return timestamp.atOffset(ZoneOffset.of(zone))
-                    .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             } else {
                 return timestamp.atZone(ZoneId.of(zone))
-                    .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             }
         }
 
@@ -300,7 +322,6 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
          *
          * @param start the start timestamp in milliseconds
          * @param end   the end timestamp in milliseconds
-         *
          * @return a formatted string representation of the duration, adjusted to the most appropriate time unit
          */
         public static String duration(long start, long end) {
@@ -311,7 +332,6 @@ public abstract class MarkdownTemplate<T extends MarkdownTemplate<T>> extends Te
          * Formats the given duration into a human-readable string, adjusted to the most appropriate time unit.
          *
          * @param duration the duration in milliseconds to be formatted
-         *
          * @return a formatted string representation of the duration
          */
         public static String duration(long duration) {

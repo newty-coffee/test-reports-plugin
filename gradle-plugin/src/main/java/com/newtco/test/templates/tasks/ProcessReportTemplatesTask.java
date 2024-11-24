@@ -16,10 +16,10 @@
 
 package com.newtco.test.templates.tasks;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-
+import com.newtco.test.reports.api.coverage.CoverageTemplate;
+import com.newtco.test.reports.api.test.TestTemplate;
+import com.newtco.test.templates.TemplateCodeGenerator;
+import com.newtco.test.templates.TemplateParser;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -27,10 +27,9 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 
-import com.newtco.test.reports.api.coverage.CoverageTemplate;
-import com.newtco.test.reports.api.test.TestTemplate;
-import com.newtco.test.templates.TemplateCodeGenerator;
-import com.newtco.test.templates.TemplateParser;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 /**
  * The ProcessReportTemplatesTask class is responsible for processing report template files and generating Java source
@@ -90,18 +89,18 @@ public abstract class ProcessReportTemplatesTask extends SourceTask {
             var templateParts       = new TemplateParser().parse(Files.readString(templateFile.toPath()));
 
             var generatedSource = new TemplateCodeGenerator().generateTemplateClass(
-                packageName,
-                templateClassName,
-                templateParentClass,
-                templateParts);
+                    packageName,
+                    templateClassName,
+                    templateParentClass,
+                    templateParts);
 
             // Write the source to the target directory
             var outputFile = getOutputDirectory().dir(packageName.replace('.', '/'))
-                .get()
-                .file(templateClassName + ".java")
-                .getAsFile()
-                .getAbsoluteFile()
-                .toPath();
+                    .get()
+                    .file(templateClassName + ".java")
+                    .getAsFile()
+                    .getAbsoluteFile()
+                    .toPath();
             Files.createDirectories(outputFile.getParent());
             Files.writeString(outputFile, generatedSource);
 
@@ -113,9 +112,7 @@ public abstract class ProcessReportTemplatesTask extends SourceTask {
      * Determines the appropriate parent template class for a given template file based on its name and directory.
      *
      * @param templateFile the file representing the template for which the parent class is to be derived
-     *
      * @return the Class object representing the appropriate parent template class for the given file
-     *
      * @throws IllegalArgumentException if the file does not have a supported name, or it is not located in a recognized
      *                                  directory
      */
@@ -141,7 +138,6 @@ public abstract class ProcessReportTemplatesTask extends SourceTask {
      * of report based on the parent directory of the template file.
      *
      * @param templateFile the file representing the template from which the package name is to be derived
-     *
      * @return a string representing the derived package name
      */
     private String derivePackageNameFromTemplateFile(File templateFile) {
@@ -155,9 +151,7 @@ public abstract class ProcessReportTemplatesTask extends SourceTask {
      * title case format followed by appending "Template".
      *
      * @param templateFile the file representing the template from which the class name is to be derived
-     *
      * @return a string representing the derived class name in title case format followed by "Template"
-     *
      * @throws IllegalArgumentException if the file does not conform to the expected template naming convention
      */
     private String deriveClassNameFromTemplateFile(File templateFile) {
@@ -178,7 +172,7 @@ public abstract class ProcessReportTemplatesTask extends SourceTask {
 
     private IllegalArgumentException invalidTemplate(File templateFile) {
         var message = "Unsupported template file \"" + templateFile.getAbsolutePath() + "\". " +
-                      "Only \"*MarkdownReport.jrt\" files are supported within \"coverage\" and \"tests\" directories.";
+                "Only \"*MarkdownReport.jrt\" files are supported within \"coverage\" and \"tests\" directories.";
 
         return new IllegalArgumentException(message);
     }

@@ -16,21 +16,17 @@
 
 package com.newtco.testlib.gradle;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-
 import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.mockito.Mockito;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.newtco.testlib.gradle.MockUtil.asPath;
 
@@ -94,17 +90,17 @@ public abstract class MockFileTree implements FileTree {
     @Override
     public Set<File> getFiles() {
         return files.stream()
-            // Differs from FileCollection in that all files have a shared root
-            .map(file -> dir.resolve(file))
-            .map(Path::toFile)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
+                // Differs from FileCollection in that all files have a shared root
+                .map(file -> dir.resolve(file))
+                .map(Path::toFile)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setFiles(Collection<?> files) {
         this.files = files.stream()
-            .map(MockUtil::asPath)
-            .sorted(Comparator.comparing(Path::toString))
-            .toList();
+                .map(MockUtil::asPath)
+                .sorted(Comparator.comparing(Path::toString))
+                .toList();
     }
 
     public void setFiles(Object... files) {

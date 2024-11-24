@@ -16,19 +16,16 @@
 
 package com.newtco.testlib.gradle;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import javax.annotation.Nonnull;
-
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.mockito.Mockito;
 
-import static com.newtco.testlib.gradle.MockUtil.asPath;
-import static com.newtco.testlib.gradle.MockUtil.javaFiles;
-import static com.newtco.testlib.gradle.MockUtil.outputFiles;
-import static com.newtco.testlib.gradle.MockUtil.resourceFiles;
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+
+import static com.newtco.testlib.gradle.MockUtil.*;
 
 /**
  * MockSourceSet is an abstract class that implements the SourceSet interface and is used to create mock implementations
@@ -50,14 +47,14 @@ public abstract class MockSourceSet implements SourceSet {
         var mock = Mockito.spy(MockSourceSet.class);
         mock.sourceSetName = sourceSetName;
         mock.java          = MockSourceDirectorySet.create("java",
-            asPath(projectDir, "src", sourceSetName, "java"),
-            javaFiles(files));
+                asPath(projectDir, "src", sourceSetName, "java"),
+                javaFiles(files));
         mock.resources     = MockSourceDirectorySet.create("resources",
-            asPath(projectDir, "src", sourceSetName, "resources"),
-            resourceFiles(files));
+                asPath(projectDir, "src", sourceSetName, "resources"),
+                resourceFiles(files));
 
         mock.allSource = MockSourceDirectorySet.create("allSource",
-            asPath(projectDir, "src", sourceSetName));
+                asPath(projectDir, "src", sourceSetName));
         var allSourceFiles = new ArrayList<File>();
         allSourceFiles.addAll(mock.java.getFiles());
         allSourceFiles.addAll(mock.resources.getFiles());

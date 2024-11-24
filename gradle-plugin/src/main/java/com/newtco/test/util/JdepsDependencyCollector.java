@@ -16,6 +16,10 @@
 
 package com.newtco.test.util;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+
+import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -28,12 +32,6 @@ import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.spi.ToolProvider;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-
-import org.gradle.api.Project;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.LoggingManager;
 
 /**
  * Runs the JDK JDeps ToolProvider on a set of classes to extract their dependencies (imports)
@@ -51,7 +49,6 @@ public class JdepsDependencyCollector {
      * prefix.
      *
      * @param prefix the prefix to match against the full class name
-     *
      * @return a BinaryOperator<String> that returns the class name if it matches the prefix, or null otherwise
      */
     public static BinaryOperator<String> classNameMapper(String prefix) {
@@ -63,7 +60,6 @@ public class JdepsDependencyCollector {
      * specified prefix.
      *
      * @param prefix the prefix to match against the outer class name
-     *
      * @return a BinaryOperator<String> that returns the outer class name if it starts with the prefix, or null
      * otherwise
      */
@@ -111,27 +107,26 @@ public class JdepsDependencyCollector {
         //   MyClassTests.class  ->  com.newtco.test.MyClass   not found
         //
         return jdeps.lines()
-            .filter(line -> line.startsWith("  ") && line.endsWith("not found"))
-            .map(line -> {
-                int start = line.indexOf("-> ");
-                if (start != -1) {
-                    int end = line.indexOf(" not found", start + "-> ".length());
-                    if (end != -1) {
-                        var className = line.substring(start + "-> ".length(), end).trim();
-                        return mapper.apply(outerQualifiedName(className), className);
+                .filter(line -> line.startsWith("  ") && line.endsWith("not found"))
+                .map(line -> {
+                    int start = line.indexOf("-> ");
+                    if (start != -1) {
+                        int end = line.indexOf(" not found", start + "-> ".length());
+                        if (end != -1) {
+                            var className = line.substring(start + "-> ".length(), end).trim();
+                            return mapper.apply(outerQualifiedName(className), className);
+                        }
                     }
-                }
-                return null;
-            })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     /**
      * Runs the jdeps tool on a collection of class files and returns its output.
      *
      * @param classFiles A collection of class files to analyze with the jdeps tool.
-     *
      * @return The output of the jdeps tool as a String. Returns an empty string if the jdeps tool is not found or an
      * error occurs.
      */
@@ -146,22 +141,22 @@ public class JdepsDependencyCollector {
             var args = new ArrayList<String>();
             args.add("-verbose");
             args.addAll(classFiles.stream()
-                .map(File::getPath)
-                .toList());
+                    .map(File::getPath)
+                    .toList());
 
             log.lifecycle(
-                "Executing jdeps {}",
-                String.join(" ", args));
+                    "Executing jdeps {}",
+                    String.join(" ", args));
 
             var exitCode = jdeps.run(
-                new PrintWriter(out, true, StandardCharsets.UTF_8),
-                new PrintWriter(err, true, StandardCharsets.UTF_8),
-                args.toArray(String[]::new));
+                    new PrintWriter(out, true, StandardCharsets.UTF_8),
+                    new PrintWriter(err, true, StandardCharsets.UTF_8),
+                    args.toArray(String[]::new));
             if (exitCode != 0) {
                 var error = err.toString(StandardCharsets.UTF_8);
                 log.error("Failed to execute jdeps: Error: {}\n{}",
-                    exitCode,
-                    error);
+                        exitCode,
+                        error);
             }
 
             return out.toString(StandardCharsets.UTF_8);

@@ -1,10 +1,10 @@
 package com.newtco.test.util;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Predicate;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class FilterSetTest {
 

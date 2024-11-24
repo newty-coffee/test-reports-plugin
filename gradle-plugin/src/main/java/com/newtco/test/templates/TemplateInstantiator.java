@@ -16,6 +16,10 @@
 
 package com.newtco.test.templates;
 
+import com.newtco.test.reports.api.Template;
+import com.newtco.test.util.Reflect;
+import org.gradle.api.GradleException;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,11 +27,6 @@ import java.net.URLClassLoader;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.gradle.api.GradleException;
-
-import com.newtco.test.reports.api.Template;
-import com.newtco.test.util.Reflect;
 
 /**
  * The TemplateInstantiator class is responsible for dynamically loading classes that implement the Template interface
@@ -86,9 +85,7 @@ public class TemplateInstantiator {
      *
      * @param templateName the name of the template class to be instantiated
      * @param parameters   the parameters to be passed to the constructor of the template class
-     *
      * @return an instance of the specified template
-     *
      * @throws ClassNotFoundException if the template class cannot be found
      */
     public Template<?> createTemplate(String templateName, Object... parameters) throws ClassNotFoundException {
@@ -110,8 +107,8 @@ public class TemplateInstantiator {
         var local = classLoader;
         if (local == null) {
             var urls = classpath.stream()
-                .map(this::toClasspathURL)
-                .toArray(URL[]::new);
+                    .map(this::toClasspathURL)
+                    .toArray(URL[]::new);
 
             synchronized (this) {
                 local = classLoader;

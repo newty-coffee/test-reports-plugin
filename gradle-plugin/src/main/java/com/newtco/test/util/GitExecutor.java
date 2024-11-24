@@ -16,16 +16,16 @@
 
 package com.newtco.test.util;
 
+import org.gradle.api.Action;
+import org.gradle.api.Project;
+import org.gradle.process.ExecResult;
+import org.gradle.process.internal.ExecException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-
-import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.process.ExecResult;
-import org.gradle.process.internal.ExecException;
 
 /**
  * Utility class to execute git commands from a Gradle project.
@@ -55,16 +55,16 @@ public class GitExecutor {
                 spec.setIgnoreExitValue(true);
                 spec.setWorkingDir(project.getRootDir());
                 spec.setEnvironment(Map.of(
-                    "LC_ALL", "en_US.UTF-8",
-                    "LANG", "en_US.UTF-8"
+                        "LC_ALL", "en_US.UTF-8",
+                        "LANG", "en_US.UTF-8"
                 ));
             });
 
             completion.execute(new GitResult(
-                args,
-                normalizeLineEndings(out.toString(StandardCharsets.UTF_8)),
-                err.toString(StandardCharsets.UTF_8),
-                execResult));
+                    args,
+                    normalizeLineEndings(out.toString(StandardCharsets.UTF_8)),
+                    err.toString(StandardCharsets.UTF_8),
+                    execResult));
 
         } catch (IOException e) {
             log.error("{}", e.getMessage(), e);
@@ -93,14 +93,14 @@ public class GitExecutor {
     public static class GitResult implements ExecResult {
 
         private final List<String> args;
-        private final String out;
-        private final String err;
-        private final ExecResult execResult;
+        private final String       out;
+        private final String       err;
+        private final ExecResult   execResult;
 
         public GitResult(List<String> args, String out, String err, ExecResult execResult) {
-            this.args = args;
-            this.out = out;
-            this.err = err;
+            this.args       = args;
+            this.out        = out;
+            this.err        = err;
             this.execResult = execResult;
         }
 
