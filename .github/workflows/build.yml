@@ -2,7 +2,7 @@ name: Build and Test Plugin
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "develop", "main" ]
   pull_request:
 
 jobs:
