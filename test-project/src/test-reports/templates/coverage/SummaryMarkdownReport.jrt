@@ -1,0 +1,39 @@
+<%
+    // Summary markdown report template for JaCoCo coverage data.
+%>
+## Coverage Report - <%= getBundle().getName() %>
+
+<details>
+    <summary>Source files covered:</summary>
+
+    ```gitignore
+    # May contain additional source files with coverage affected by changes to test code.
+    <%
+        for (var pkg : getBundle().getPackages()) {
+            for (var src : pkg.getSourceFiles()) {
+                out(bundle.getName(), "/**/", pkg.getName().replace('.', '/'), "/", src.getName());
+            }
+        }
+    %>
+    ```
+</details>
+
+
+| Packages / Classes | % Instructions<br/>Covered |
+|:-|:-:|
+<%
+    for (var pkg : getBundle().getPackages()) {
+        if (pkg.containsCode()) {
+            int classes = 0;
+            for (var clz : pkg.getClasses()) {
+                out("|", clz.getQualifiedName(), "|", badge(clz.getCounters().getInstructions()), "|\n");
+                classes += 1;
+            }
+            if (classes > 0) {
+                out("|<i>Total ", pkg.getName(), ".*</i>|", badge(pkg.getCounters().getInstructions()), "|\n");
+            }
+            out("|&nbsp;|\n");
+        }
+    }
+    out("|<i>Overall Total:</i>|", badge(getBundle().getCounters().getInstructions()), "|\n");
+%>
