@@ -323,11 +323,11 @@ tasks.withType(Test).configureEach {
         // Supported template replacement parameters:
         //  repository - maps to gitLinkRepository property
         //  commit     - maps to gitLinkCommit property
-        //  path       - maps to source code file path relative to the git repo root
+        //  file       - maps to source code file path relative to the git repo root
         //
-        // Default value: https://github.com/{repository}/blob/{commit}/{path} or
-        //                https://gitlab.com/{repository}/blob/{commit}/{path} 
-        gitLinkUrlTemplate = "https://github.com/{repository}/blob/{commit}/{path}"
+        // Default value: https://github.com/{repository}/blob/{commit}/{file} or
+        //                https://gitlab.com/{repository}/blob/{commit}/{file} 
+        gitLinkUrlTemplate = "https://github.com/{repository}/blob/{commit}/{file}"
 
         // JSON configuration
         json {
@@ -398,19 +398,21 @@ tasks.withType<Test> {
 ```groovy
 tasks.withType(JacocoReport).configureEach {
     additionalReports {
-        // Sets the git ref name used as the base ref to generate a list of files changed. If the plugin
-        // is able to generate a list of files which have changed, it will limit report output to only
-        // those files. The plugin will also detect the dependencies of any test and add those as well.
-        // This allows capturing coverage changes when only tests are modified.
-        //
+        // Sets the git ref name used as the base ref to generate a list of files changed. If
+        // the plugin is able to generate a list of files which have changed, it will limit 
+        // report output to only those files. The plugin will also detect the dependencies of
+        // any test and add those as well. This allows capturing coverage changes when only 
+        // tests are modified.
         // The plugin will run the following command to generate the list:
         // git --no-pager diff --name-only {gitBaseRef} HEAD -- {project.name}/**/*.java
         //
-        // Default value: GITHUB_BASE_REF or CI_MERGE_REQUEST_TARGET_BRANCH_NAME environment variable
+        // Default value: GITHUB_BASE_REF or CI_MERGE_REQUEST_TARGET_BRANCH_NAME environment
+        // variable
         gitBaseRef = "develop"
 
-        // List of Java source files to include or exclude in the coverage report. The plugin will add 
-        // files to this list if it can detect files changed via the gitBaseRef property.
+        // List of Java source files to include or exclude in the coverage report. The plugin
+        // will add files to this list if it can detect files changed via the gitBaseRef 
+        // property.
         changeSet {
             // Exclude Test files
             exclude "**/*Test.java"
@@ -453,7 +455,8 @@ tasks.withType(JacocoReport).configureEach {
     }
 
     // Alternatively, configure the extension type
-    extensions.getByType(com.newtco.test.reports.plugin.coverage.CoverageReportsExtension).configure {
+    extensions.getByType(com.newtco.test.reports.plugin.coverage.CoverageReportsExtension)
+    .configure {
         // Same as additionalReports above
     }
 }
