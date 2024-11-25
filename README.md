@@ -1,4 +1,4 @@
-# test-reports-plugin
+# test-reports-plugin for Gradle
 
 Adds JSON and Markdown reports to JaCoCo and JUnit test tasks.
 
@@ -30,7 +30,7 @@ Adds JSON and Markdown reports to JaCoCo and JUnit test tasks.
         },
         "packages": [
             {
-                "name": "com.newtco.test.test",
+                "name": "org.newtco.test.test",
                 "counters": {
                     "instruction": 77.59,
                     "branch": 100.0,
@@ -235,7 +235,7 @@ To apply the plugin, add the following to your `build.gradle` file:
 
 ```groovy
 plugins {
-    id 'com.newtco.test.test-reports-plugin' version '1.0.0'
+    id 'org.newtco.test.test-reports-plugin' version '1.0.0'
 }
 ```
 
@@ -247,11 +247,11 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'com.newtco.test.test-reports-plugin:1.0.0'
+        classpath 'org.newtco.test.test-reports-plugin:1.0.0'
     }
 }
 
-apply plugin: 'com.newtco.test.test-reports-plugin'
+apply plugin: 'org.newtco.test.test-reports-plugin'
 ```
 
 ## Configuration
@@ -272,7 +272,7 @@ _Groovy DSL:_
 
 ```groovy
 tasks.named("processReportTemplates").configure {
-    templatePackage = "com.newtco.test.report.templates"
+    templatePackage = "org.newtco.test.report.templates"
 }
 ```
 
@@ -280,7 +280,7 @@ _Kotlin DSL:_
 
 ```kotlin
 tasks.named("processReportTemplates").configure {
-    setProperty("templatePackage", "com.newtco.test.report.templates")
+    setProperty("templatePackage", "org.newtco.test.report.templates")
 }
 ```
 
@@ -369,7 +369,7 @@ tasks.withType(Test).configureEach {
     }
     
     // Alternatively, configure the extension type
-    extensions.getByType(com.newtco.test.reports.plugin.test.TestReportsExtension).configure {
+    extensions.getByType(org.newtco.test.reports.plugin.test.TestReportsExtension).configure {
         // Same as additionalReports above
     }
 
@@ -385,7 +385,7 @@ tasks.withType<Test> {
     }
     
     // Alternatively, configure the extension type (without the use of getByType())
-    extensions.configure(com.newtco.test.reports.plugin.test.TestReportsExtension::class) {
+    extensions.configure(org.newtco.test.reports.plugin.test.TestReportsExtension::class) {
         // Same as Groovy DSL
     }
 }
@@ -453,7 +453,7 @@ tasks.withType(JacocoReport).configureEach {
     }
 
     // Alternatively, configure the extension type
-    extensions.getByType(com.newtco.test.reports.plugin.coverage.CoverageReportsExtension).configure {
+    extensions.getByType(org.newtco.test.reports.plugin.coverage.CoverageReportsExtension).configure {
         // Same as additionalReports above
     }
 }
@@ -469,7 +469,7 @@ tasks.withType<JacocoReport> {
     }
 
     // Alternatively, configure the extension type (without the use of getByType())
-    extensions.configure(com.newtco.test.reports.plugin.coverage.CoverageReportsExtension::class) {
+    extensions.configure(org.newtco.test.reports.plugin.coverage.CoverageReportsExtension::class) {
         // Same as Groovy DSL
     }
 }

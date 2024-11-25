@@ -1,4 +1,4 @@
-import com.newtco.test.reports.plugin.coverage.CoverageReportsExtension
+import org.newtco.test.reports.plugin.coverage.CoverageReportsExtension
 
 /*
  * Copyright 2024 newty.coffee
@@ -20,7 +20,7 @@ plugins {
     id("java")
     id("jacoco")
     id("org.gradle.test-retry") version ("1.6.0")
-    id("com.newtco.test.test-reports-plugin")
+    id("org.newtco.test.test-reports-plugin")
 }
 
 
@@ -44,7 +44,7 @@ dependencies {
 
 
 tasks.named("processReportTemplates").configure {
-    setProperty("templatePackage", "com.newtco.test.report.templates")
+    setProperty("templatePackage", "org.newtco.test.report.templates")
 }
 
 tasks.withType<Test> {
@@ -67,11 +67,11 @@ tasks.withType<Test> {
         html.required.set(true)
     }
 
-    extensions.configure(com.newtco.test.reports.plugin.test.TestReportsExtension::class) {
+    extensions.configure(org.newtco.test.reports.plugin.test.TestReportsExtension::class) {
         stackFilters {
             include(
                 "org.opentest4j.**",
-                "com.newtco.**"
+                "org.newtco.**"
             )
         }
 
