@@ -154,8 +154,8 @@ gradlePlugin {
 
     plugins {
         create("testReports") {
-            id = "com.newtco.test.test-reports-plugin"
-            implementationClass = "com.newtco.test.reports.plugin.TestReportsPlugin"
+            id = "org.newtco.test.test-reports-plugin"
+            implementationClass = "org.newtco.test.reports.plugin.TestReportsPlugin"
             displayName = "Test Reports Plugin"
             description = "JSON and Markdown reports for Jacoco and JUnit"
             tags = listOf("test", "reports", "jacoco", "junit", "markdown", "json")
@@ -188,7 +188,7 @@ tasks.withType<Jar> {
 
 val generatePluginVersion = tasks.register("generatePluginVersion") {
     val outputFile =
-        layout.buildDirectory.file("generated/sources/plugin-version/com/newtco/test/reports/plugin/PluginVersion.java")
+        layout.buildDirectory.file("generated/sources/plugin-version/org/newtco/test/reports/plugin/PluginVersion.java")
 
     outputs.file(outputFile)
 
@@ -202,7 +202,7 @@ val generatePluginVersion = tasks.register("generatePluginVersion") {
         // Write the plugin properties to the plugin.properties file
         outputFile.get().asFile.writeText(
             """
-            package com.newtco.test.reports.plugin;
+            package org.newtco.test.reports.plugin;
             
             import java.util.Optional;
             import java.util.function.Supplier;
@@ -322,6 +322,10 @@ publishing {
         }
     }
 }
+
+tasks.named("build", {
+    dependsOn(tasks.named("test"), tasks.named("testFunc"))
+})
 
 tasks.register("listConfigurations") {
     doLast {

@@ -1,4 +1,4 @@
-import com.newtco.test.reports.api.test.model.*;
+import org.newtco.test.reports.api.test.model.*;
 <%
 // Detailed markdown report template for JUnit test results
 %>
